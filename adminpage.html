@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BONK Coin Advanced Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+    <script src="database.js"></script>
+    <style>
+        :root {
+            --primary-color: #6366F1;
+            --secondary-color: #8B5CF6;
+            --bg-dark: #0F172A;
+            --card-bg: #1E293B;
+            --text-light: #F8FAFC;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            transition: width 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .content-wrapper {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .live-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar p-6 shadow-2xl z-50">
+        <div class="mb-10 text-center">
+            <img src="https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-logo.png" alt="BONK Admin" class="w-24 mx-auto mb-4">
+            <h1 class="text-2xl font-bold text-white">BONK Admin Panel</h1>
+        </div>
+
+        <nav>
+            <ul>
+                <li class="mb-2">
+                    <a href="#dashboard" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                        <i class="mr-3">📊</i> Gösterge Paneli
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#users" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                        <i class="mr-3">👥</i> Kullanıcı Yönetimi
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#transactions" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                        <i class="mr-3">💰</i> İşlemler
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#games" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                        <i class="mr-3">🎮</i> Oyun İstatistikleri
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#system" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                        <i class="mr-3">⚙️</i> Sistem Ayarları
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-wrapper p-10">
+        <!-- Real-time Dashboard -->
+        <section id="dashboard" class="grid grid-cols-4 gap-6">
+            <div class="dashboard-card p-6 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl">Toplam Kullanıcı</h3>
+                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
+                </div>
+                <p class="text-4xl font-bold text-blue-400" id="total-users">0</p>
+            </div>
+            <div class="dashboard-card p-6 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl">Toplam BONK</h3>
+                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
+                </div>
+                <p class="text-4xl font-bold text-green-400" id="total-bonk">0</p>
+            </div>
+            <div class="dashboard-card p-6 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl">Aktif Oyuncular</h3>
+                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
+                </div>
+                <p class="text-4xl font-bold text-purple-400" id="active-players">0</p>
+            </div>
+            <div class="dashboard-card p-6 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl">Toplam Referans</h3>
+                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
+                </div>
+                <p class="text-4xl font-bold text-red-400" id="total-referrals">0</p>
+            </div>
+        </section>
+
+        <!-- Detaylı İstatistikler -->
+        <section class="mt-10 grid grid-cols-2 gap-6">
+            <!-- Oyun İstatistikleri -->
+            <div class="dashboard-card p-6 rounded-lg">
+                <h3 class="text-2xl mb-6">Oyun İstatistikleri</h3>
+                <div id="game-stats">
+                    <div class="mb-4">
+                        <h4 class="text-lg">Flappy BONK</h4>
+                        <div class="bg-gray-800 rounded-full h-2 mt-2">
+                            <div class="bg-blue-500 h-2 rounded-full" id="flappy-progress" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm mt-2" id="flappy-stats">Toplam Oyun: 0 | En Yüksek Skor: 0</p>
+                    </div>
+                    <div class="mb-4">
+                        <h4 class="text-lg">BONK Clicker</h4>
+                        <div class="bg-gray-800 rounded-full h-2 mt-2">
+                            <div class="bg-green-500 h-2 rounded-full" id="clicker-progress" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm mt-2" id="clicker-stats">Toplam Tıklama: 0 | Aktif Kullanıcı: 0</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg">BONK Dino</h4>
+                        <div class="bg-gray-800 rounded-full h-2 mt-2">
+                            <div class="bg-purple-500 h-2 rounded-full" id="dino-progress" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm mt-2" id="dino-stats">Toplam Oyun: 0 | En Yüksek Skor: 0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liderlik Tablosu -->
+            <div class="dashboard-card p-6 rounded-lg">
+                <h3 class="text-2xl mb-6">En İyi Referansçılar</h3>
+                <table class="w-full" id="top-referrers">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-2 text-left">Kullanıcı</th>
+                            <th class="py-2 text-right">Referans Sayısı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="referrer-list">
+                        <!-- Dinamik olarak doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Kullanıcı Yönetimi -->
+        <section id="users" class="mt-10">
+            <h2 class="text-2xl mb-6">Kullanıcı Yönetimi</h2>
+            <div class="dashboard-card p-6 rounded-lg">
+                <div class="flex mb-4">
+                    <input type="text" placeholder="Kullanıcı Ara" id="user-search" class="flex-1 p-2 bg-gray-800 rounded mr-4">
+                    <button onclick="searchUsers()" class="bg-blue-600 px-4 py-2 rounded">Ara</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="user-table">
+                        <thead>
+                            <tr class="bg-gray-700">
+                                <th class="p-3 text-left">Kullanıcı ID</th>
+                                <th class="p-3 text-left">BONK Bakiyesi</th>
+                                <th class="p-3 text-left">Katılım Tarihi</th>
+                                <th class="p-3 text-left">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list">
+                            <!-- Dinamik olarak doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Verileri Güncelleme İşlevleri
+        async function updateDashboardStats() {
+            try {
+                const stats = await DATABASE.stats.getGlobalStats();
+                
+                // Genel İstatistikler
+                document.getElementById('total-users').textContent = stats.totalUsers.toLocaleString();
+                document.getElementById('total-bonk').textContent = stats.totalBonk.toLocaleString();
+                document.getElementById('total-referrals').textContent = stats.referralStats.totalReferrals.toLocaleString();
+                
+                // Oyun İstatistikleri
+                const gameStats = stats.gameStats;
+                
+                // Flappy Bird
+                document.getElementById('flappy-stats').textContent = 
+                    `Toplam Oyun: ${gameStats.flappyBird.totalPlays.toLocaleString()} | En Yüksek Skor: ${gameStats.flappyBird.highScore.toLocaleString()}`;
+                document.getElementById('flappy-progress').style.width = 
+                    `${Math.min(gameStats.flappyBird.totalPlays / 1000 * 100, 100)}%`;
+                
+                // Clicker
+                document.getElementById('clicker-stats').textContent = 
+                    `Toplam Tıklama: ${gameStats.clicker.totalClicks.toLocaleString()} | Aktif Kullanıcı: ${gameStats.clicker.activeAutoClickers.toLocaleString()}`;
+                document.getElementById('clicker-progress').style.width = 
+                    `${Math.min(gameStats.clicker.totalClicks / 10000 * 100, 100)}%`;
+                
+                // Dino Runner
+                document.getElementById('dino-stats').textContent = 
+                    `Toplam Oyun: ${gameStats.dinoRunner.totalPlays.toLocaleString()} | En Yüksek Skor: ${gameStats.dinoRunner.highScore.toLocaleString()}`;
+                document.getElementById('dino-progress').style.width = 
+                    `${Math.min(gameStats.dinoRunner.totalPlays / 1000 * 100, 100)}%`;
+
+                // Top Referansçılar
+                const referrerList = document.getElementById('referrer-list');
+                referrerList.innerHTML = '';
+                stats.referralStats.topReferrers.forEach(referrer => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2">${referrer.userId}</td>
+                        <td class="py-2 text-right">${referrer.referralCount.toLocaleString()}</td>
+                    `;
+                    referrerList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('İstatistik güncelleme hatası:', error);
+            }
+        }
+
+        // Kullanıcı Arama
+        async function searchUsers() {
+            const searchInput = document.getElementById('user-search').value.trim();
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = ''; // Önceki sonuçları temizle
+
+            try {
+                // Tüm kullanıcıları al
+                const data = await DATABASE.api.getAllData();
+                const users = data.users || {};
+
+                // Kullanıcıları filtrele
+                const filteredUsers = Object.entries(users)
+                    .filter(([userId, userData]) => 
+                        !searchInput || 
+                        userId.toLowerCase().includes(searchInput.toLowerCase())
+                    )
+                    .slice(0, 10); // İlk 10 sonucu göster
+
+                // Kullanıcıları listele
+                filteredUsers.forEach(([userId, userData]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-3">${userId}</td>
+                        <td class="p-3">${(userData.bonkBalance || 0).toLocaleString()} BONK</td>
+                        <td class="p-3">${userData.joinDate ? new Date(userData.joinDate).toLocaleDateString() : 'Bilinmiyor'}</td>
+                        <td class="p-3">
+                            <button onclick="showUserDetails('${userId}')" class="bg-blue-600 px-3 py-1 rounded mr-2">Detay</button>
+                            <button onclick="sendBonk('${userId}')" class="bg-green-600 px-3 py-1 rounded">BONK Gönder</button>
+                        </td>
+                    `;
+                    userList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Kullanıcı arama hatası:', error);
+                userList.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-red-500 p-4">
+                            Kullanıcılar yüklenemedi: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Kullanıcı Detayları Gösterme
+        function showUserDetails(userId) {
+            // Modal veya yan panel açma işlevi
+            alert(`Kullanıcı Detayları - ID: ${userId}`);
+        }
+
+        // BONK Gönderme İşlevi
+        async function sendBonk(userId) {
+            const bonkAmount = prompt(`${userId} kullanıcısına kaç BONK göndermek istiyorsunuz?`);
+            
+            if (bonkAmount && !isNaN(bonkAmount)) {
+                try {
+                    // Kullanıcının mevcut bakiyesini güncelle
+                    const data = await DATABASE.api.getAllData();
+                    const users = data.users || {};
+
+                    if (users[userId]) {
+                        users[userId].bonkBalance = 
+                            (users[userId].bonkBalance || 0) + parseInt(bonkAmount);
+
+                        // Veriyi güncelle
+                        await DATABASE.api.updateData(data);
+
+                        alert(`${bonkAmount} BONK ${userId} kullanıcısına gönderildi!`);
+                        
+                        // Listeyi yeniden yükle
+                        searchUsers();
+                    } else {
+                        alert('Kullanıcı bulunamadı!');
+                    }
+                } catch (error) {
+                    console.error('BONK gönderme hatası:', error);
+                    alert('BONK gönderme işlemi başarısız oldu.');
+                }
+            }
+        }
+
+        // Sistem Ayarları Yönetimi
+        async function toggleMaintenanceMode(enable) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                
+                // Bakım modu ayarını güncelle
+                if (!data.systemSettings) data.systemSettings = {};
+                data.systemSettings.maintenanceMode = enable;
+
+                await DATABASE.api.updateData(data);
+
+                alert(`Bakım modu ${enable ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`);
+            } catch (error) {
+                console.error('Bakım modu hatası:', error);
+                alert('Ayar değişikliği başarısız oldu.');
+            }
+        }
+
+        // Sayfa Yüklendiğinde
+        window.onload = function() {
+            // İstatistikleri ilk yükleme
+            updateDashboardStats();
+
+            // Her dakikada bir istatistikleri güncelle
+            setInterval(updateDashboardStats, 60000);
+        };
+    </script>
+</body>
+</html>
