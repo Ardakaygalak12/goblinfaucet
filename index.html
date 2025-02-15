@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BONK Coin Airdrop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Reklam SDK'sı -->
+    <script src='//whephiwums.com/vignette.min.js' data-zone='8946116' data-sdk='show_8946116'></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary: #6366F1;
+            --primary-dark: #4F46E5;
+            --secondary: #8B5CF6;
+            --bg-light: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+        }
+
+        body {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        body.fullscreen {
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 70px; /* Banner için alan */
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 24px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-logo.png') no-repeat center;
+            background-size: contain;
+            opacity: 0.1;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Referral System */
+        .referral-box {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .referral-link {
+            background: #F1F5F9;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            position: relative;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Game Cards */
+        .games-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .game-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .game-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .game-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .game-content p {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .play-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Ad Containers */
+        .ad-container {
+            margin: 20px 0;
+            min-height: 100px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .bottom-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Fullscreen Mode */
+        @media (min-width: 768px) {
+            .fullscreen-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: black;
+                z-index: 2000;
+                display: none;
+            }
+
+            .fullscreen-container.active {
+                display: block;
+            }
+
+            .fullscreen-container iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .game-img {
+                height: 160px;
+            }
+
+            .stat-card p {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BONK Coin Airdrop</h1>
+            <p>170 Gün Boyunca Aktif!</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Toplam Katılımcı</h3>
+                <p id="totalParticipants">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Toplam BONK</h3>
+                <p id="totalBonk">0</p>
+            </div>
+        </div>
+
+        <div class="referral-box">
+            <h3>Referans Linkiniz</h3>
+            <div class="referral-link" id="refLink">
+                Yükleniyor...
+            </div>
+            <button class="copy-btn" onclick="copyRefLink()">Kopyala</button>
+            <p>Her referans için 1000 BONK kazanın!</p>
+        </div>
+
+        <div class="ad-container" id="topAd">
+            <!-- Üst Banner Reklam -->
+        </div>
+
+        <div class="games-grid">
+            <div class="game-card">
+                <img src="/api/placeholder/600/300" alt="Flappy BONK" class="game-img">
+                <div class="game-content">
+                    <h3>Flappy BONK</h3>
+                    <p>Her engelde 500 BONK kazanın!<br>Öldüğünüzde reklam izleyerek devam edin.</p>
+                    <button class="play-btn" onclick="playGame('flappy')">OYNA</button>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <img src="/api/placeholder/600/300" alt="BONK Clicker" class="game-img">
+                <div class="game-content">
+                    <h3>BONK Clicker</h3>
+                    <p>Her tıklamada BONK kazanın!<br>2x bonus için reklam izleyin.</p>
+                    <button class="play-btn" onclick="playGame('clicker')">OYNA</button>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <img src="/api/placeholder/600/300" alt="BONK Dino" class="game-img">
+                <div class="game-content">
+                    <h3>BONK Dino</h3>
+                    <p>Koşarken BONK topla!<br>Öldüğünüzde reklam izleyerek devam edin.</p>
+                    <button class="play-btn" onclick="playGame('dino')">OYNA</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ad-container" id="bottomAd">
+            <!-- Alt Banner Reklam -->
+        </div>
+    </div>
+
+    <!-- Sabit Alt Banner -->
+    <div class="bottom-banner" id="fixedBanner">
+        <!-- Banner Reklam -->
+    </div>
+
+    <!-- Fullscreen Container -->
+    <div class="fullscreen-container" id="fullscreenContainer">
+        <iframe id="gameFrame" frameborder="0"></iframe>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        if (tg) tg.expand();
+
+        // JSONbin.io Konfigürasyonu
+        const JSONBIN_CONFIG = {
+            binId: '67b0a195ad19ca34f804ba90',
+            apiKey: '$2a$10$m3ykh1NKxmtQDVM140H6TOTqsemkiBEdfdQnG/ApyhjJ1Duj2Ri6W'
+        };
+
+        // Reklam ve Oyun Yönetimi
+        const gameManager = {
+            isFullscreen: false,
+
+            async playGame(gameType) {
+                // Reklam göster ve oyunu başlat
+                try {
+                    await show_8946116();
+                    this.startGame(gameType);
+                } catch (error) {
+                    console.error('Reklam gösterme hatası:', error);
+                    this.startGame(gameType);
+                }
+            },
+
+            startGame(gameType) {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const gameUrls = {
+                    flappy: 'flappybird.html',
+                    clicker: 'clickergame.html',
+                    dino: 'dinorunner.html'
+                };
+
+                if (!isMobile && !tg.initDataUnsafe?.user) {
+                    // Masaüstünde tam ekran
+                    this.openFullscreen(gameUrls[gameType]);
+                } else {
+                    // Mobil veya Telegram'da normal sayfa
+                    window.location.href = gameUrls[gameType];
+                }
+            },
+
+            openFullscreen(gameUrl) {
+                const container = document.getElementById('fullscreenContainer');
+                const gameFrame = document.getElementById('gameFrame');
+                
+                gameFrame.src = gameUrl;
+                container.classList.add('active');
+                document.body.classList.add('fullscreen');
+                this.isFullscreen = true;
+
+                // ESC tuşu ile çıkış
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.isFullscreen) {
+                        this.closeFullscreen();
+                    }
+                });
+            },
+
+            closeFullscreen() {
+                const container = document.getElementById('fullscreenContainer');
+                const gameFrame = document.getElementById('gameFrame');
+                
+                container.classList.remove('active');
+                document.body.classList.remove('fullscreen');
+                gameFrame.src = '';
+                this.isFullscreen = false;
+            }
+        };
+
+        // Referans Sistemi
+        const referralSystem = {
+            generateRefLink(userId) {
+                return `https://t.me/bonkairdropgame_bot?start=${userId}`;
+            },
+
+            async copyToClipboard(text) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showNotification('Referans linki kopyalandı!');
+                } catch (error) {
+                    showNotification('Kopyalama hatası!');
+                }
+            }
+        };
+
+        // Veri Yönetimi
+        const dataManager = {
+            async getData() {
+                try {
+                    const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`, {
+                        headers: {
+                            'X-Master-Key': JSONBIN_CONFIG.apiKey
+                        }
+                    });
+                    return await response.json();
+                } catch (error) {
+                    console.error('Veri alma hatası:', error);
+                    return null;
+                }
+            },
+
+            async updateData(data) {
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': JSONBIN_CONFIG.apiKey
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    return true;
+                } catch (error) {
+                    console.error('Veri güncelleme hatası:', error);
+                    return false;
+                }
+            }
+        };
+
+        // UI Yardımcıları
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        // Sayfa Yükleme
+        window.onload = async function() {
+            // Telegram kullanıcı bilgisi
+            const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
+            
+            // Referans linkini oluştur
+            const refLink = referralSystem.generateRefLink(userId);
+            document.getElementById('refLink').textContent = refLink;
+
+            // İstatistikleri yükle
+            const data = await dataManager.getData();
+            if (data) {
+                document.getElementById('totalParticipants').textContent = 
+                    Object.keys(data.users || {}).length.toLocaleString();
+                
+                const totalBonk = Object.values(data.users || {})
+                    .reduce((sum, user) => sum + (user.bonkBalance || 0), 0);
+                document.getElementById('totalBonk').textContent = 
+                    totalBonk.toLocaleString();
+            }
+
+            // Reklamları yükle
+            loadAds();
+        };
+
+        // Oyun başlatma
+        function playGame(gameType) {
+            gameManager.playGame(gameType);
+        }
+
+        // Referans linkini kopyala
+        function copyRefLink() {
+            const refLink = document.getElementById('refLink').textContent;
+            referralSystem.copyToClipboard(refLink);
+        }
+
+        // Reklam yükleme
+        function loadAds() {
+            // Banner reklamları yükle
+            const adContainers = ['topAd', 'bottomAd', 'fixedBanner'];
+            adContainers.forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (container) {
+                    // Banner reklam kodunu ekle
+                }
+            });
+        }
+    </script>
+</body>
+</html>
