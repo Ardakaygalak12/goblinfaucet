@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Runner</title>
+    <title>BONK Dino</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="database.js"></script>
     <script src='//whephiwums.com/vignette.min.js' data-zone='8946116' data-sdk='show_8946116'></script>
     <style>
         * {
@@ -17,21 +18,48 @@
 
         body {
             background: #F8FAFC;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             overflow: hidden;
+            position: relative;
+        }
+
+        #gameWrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Yan Banner Reklamlar */
+        .side-banner {
+            width: 160px;
+            height: 600px;
+            background: white;
+            position: relative;
+            display: none;
+        }
+
+        .side-banner.left {
+            margin-right: 20px;
+        }
+
+        .side-banner.right {
+            margin-left: 20px;
         }
 
         #gameContainer {
             width: 100%;
-            max-width: 400px;
-            height: 200px;
+            max-width: 800px;
+            height: 300px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(#87CEEB, #E0F6FF);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         #dino {
@@ -39,53 +67,90 @@
             height: 60px;
             background-image: url(https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-icon.png);
             background-size: cover;
-            position: relative;
-            top: 140px;
+            position: absolute;
+            top: 230px;
             left: 20px;
+            transition: transform 0.1s;
         }
 
         .jump {
-            animation: jump 0.4s linear;
+            animation: jump 0.5s linear;
         }
         
         @keyframes jump {
-            0% { top: 140px; }
-            30% { top: 100px; }
-            50% { top: 60px; }
-            80% { top: 100px; }
-            100% { top: 140px; }
+            0% { top: 230px; }
+            40% { top: 150px; }
+            60% { top: 100px; }
+            80% { top: 150px; }
+            100% { top: 230px; }
         }
 
-        #cactus {
+        .obstacle {
             width: 40px;
             height: 60px;
-            position: relative;
-            top: 80px;
-            left: 380px;
+            position: absolute;
+            top: 170px;
             background-image: url(https://i.imgur.com/PrHHaMX.png);
             background-size: cover;
-            animation: block 1.5s infinite linear;
+            animation: moveLeft 2s linear infinite;
         }
 
-        @keyframes block {
-            0% { left: 380px; }
-            100% { left: -60px; }
+        @keyframes moveLeft {
+            0% { right: -50px; }
+            100% { right: 100%; }
         }
 
         #road {
-            width: 400px;
+            width: 100%;
             height: 20px;
             background: #EEAB5B;
             position: absolute;
-            top: 190px;
+            bottom: 0;
         }
 
-        #score {
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            top: 180px;
+            background-image: url(https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-coin.png);
+            background-size: cover;
+            animation: moveLeft 2s linear infinite;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle 0.8s ease-out forwards;
+            font-size: 20px;
+            font-weight: bold;
+            color: gold;
+            z-index: 3;
+        }
+
+        @keyframes particle {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .hud {
             position: absolute;
             top: 20px;
-            right: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: #1a1a1a;
+            font-weight: bold;
             font-size: 20px;
-            color: #0369A1;
+            text-shadow: 1px 1px 0 white;
         }
 
         #gameOver {
@@ -94,69 +159,109 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.8);
-            color: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             text-align: center;
-            visibility: hidden;
+            color: white;
+            display: none;
+            z-index: 10;
         }
 
-        #bonkCounter {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 20px;
-            color: #0369A1;
+        .btn {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.2s;
         }
 
-        .coin {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            top: 110px;
-            left: 380px;
-            background-image: url(https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-coin.png);
-            background-size: cover;
-            animation: coin 2s infinite linear;
+        .btn:hover {
+            background: #4F46E5;
         }
 
-        @keyframes coin {
-            0% { left: 380px; }
-            100% { left: -40px; }
-        }
-
-        .banner-ad {
+        .bottom-banner {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             height: 60px;
             background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
+            z-index: 100;
+        }
+
+        /* Responsive Tasarım */
+        @media (min-width: 1200px) {
+            .side-banner {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #gameContainer {
+                height: 250px;
+            }
+            
+            #dino {
+                top: 180px;
+            }
+            
+            .obstacle {
+                top: 120px;
+            }
+            
+            .coin {
+                top: 130px;
+            }
+
+            @keyframes jump {
+                0% { top: 180px; }
+                40% { top: 100px; }
+                60% { top: 50px; }
+                80% { top: 100px; }
+                100% { top: 180px; }
+            }
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <div id="dino"></div>
-        <div id="cactus"></div>
-        <div id="road"></div>
-        <div id="score">Skor: 0</div>
-        <div id="bonkCounter">BONK: 0</div>
-        <div id="gameOver">
-            <h2>Oyun Bitti!</h2>
-            <p>Skor: <span id="finalScore">0</span></p>
-            <p>BONK Kazancı: <span id="bonkEarned">0</span></p>
-            <button onclick="watchAdToRevive()">⚡ Reklam İzle ve Devam Et</button>
-            <button onclick="restartGame()">Yeniden Başla</button>
+    <div id="gameWrapper">
+        <!-- Sol Banner -->
+        <div class="side-banner left" id="leftBanner">
+            <!-- Banner reklam kodu buraya gelecek -->
+        </div>
+
+        <div id="gameContainer">
+            <div class="hud">
+                <div id="score">Skor: 0</div>
+                <div id="bonkCounter">BONK: 0</div>
+            </div>
+
+            <div id="dino"></div>
+            <div id="road"></div>
+
+            <div id="gameOver">
+                <h2>Oyun Bitti!</h2>
+                <p>Skor: <span id="finalScore">0</span></p>
+                <p>BONK Kazancı: <span id="bonkEarned">0</span></p>
+                <button class="btn" onclick="watchAdToRevive()">⚡ Reklam İzle ve Devam Et</button>
+                <button class="btn" onclick="restartGame()">Yeniden Başla</button>
+            </div>
+        </div>
+
+        <!-- Sağ Banner -->
+        <div class="side-banner right" id="rightBanner">
+            <!-- Banner reklam kodu buraya gelecek -->
         </div>
     </div>
 
-    <div class="banner-ad" id="bottomBanner">
-        <!-- Banner reklam kodu buraya -->
+    <!-- Alt Banner -->
+    <div class="bottom-banner" id="bottomBanner">
+        <!-- Banner reklam kodu buraya gelecek -->
     </div>
 
     <script>
@@ -164,77 +269,183 @@
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
 
-        // Oyun nesneleri
+        // Oyun Durumu
+        const gameState = {
+            isPlaying: true,
+            score: 0,
+            bonkBalance: 0,
+            speed: 2,
+            obstacles: [],
+            coins: [],
+            gameLoop: null,
+            obstacleInterval: null,
+            coinInterval: null,
+            lastObstacleTime: 0,
+            minObstacleInterval: 1500
+        };
+
+        // DOM Elementleri
         const dino = document.getElementById('dino');
-        const cactus = document.getElementById('cactus');
+        const gameContainer = document.getElementById('gameContainer');
         const scoreElement = document.getElementById('score');
         const bonkCounterElement = document.getElementById('bonkCounter');
         const gameOverScreen = document.getElementById('gameOver');
         const finalScoreElement = document.getElementById('finalScore');
         const bonkEarnedElement = document.getElementById('bonkEarned');
 
+        // Zıplama kontrolü
         let isJumping = false;
-        let isGameOver = false;
-        let score = 0;
-        let bonkBalance = 0;
 
-        // Zıplama
         function jump() {
-            if (isJumping) return;
+            if (isJumping || !gameState.isPlaying) return;
+            
             isJumping = true;
             dino.classList.add('jump');
+            
             setTimeout(() => {
                 dino.classList.remove('jump');
                 isJumping = false;
-            }, 400);
+            }, 500);
         }
 
-        // Çarpışma kontrolü
-        function checkCollision() {
-            const dinoRect = dino.getBoundingClientRect();
-            const cactusRect = cactus.getBoundingClientRect();
-
-            return (
-                dinoRect.right >= cactusRect.left &&
-                dinoRect.left <= cactusRect.right &&
-                dinoRect.bottom >= cactusRect.top &&
-                dinoRect.top <= cactusRect.bottom
-            );
+        // Engel oluşturma
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.className = 'obstacle';
+            gameContainer.appendChild(obstacle);
+            
+            const obstacleObj = {
+                element: obstacle,
+                x: gameContainer.offsetWidth
+            };
+            
+            gameState.obstacles.push(obstacleObj);
         }
 
         // Coin oluşturma
         function createCoin() {
             const coin = document.createElement('div');
-            coin.classList.add('coin');
-            document.getElementById('gameContainer').appendChild(coin);
+            coin.className = 'coin';
+            gameContainer.appendChild(coin);
+            
+            const coinObj = {
+                element: coin,
+                x: gameContainer.offsetWidth,
+                collected: false
+            };
+            
+            gameState.coins.push(coinObj);
+        }
+
+        // Parçacık efekti
+        function createParticle(x, y, text) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.textContent = text;
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            gameContainer.appendChild(particle);
 
             setTimeout(() => {
-                if (!isGameOver && dino.getBoundingClientRect().right >= coin.getBoundingClientRect().left) {
-                    bonkBalance += 100;
-                    bonkCounterElement.textContent = `BONK: ${bonkBalance}`;
-                    document.getElementById('gameContainer').removeChild(coin);
-                }
-            }, 1800);
+                particle.remove();
+            }, 800);
         }
 
         // Oyun döngüsü
-        function gameLoop() {
-            if (checkCollision()) {
-                gameOver();
-            } else {
-                score++;
-                scoreElement.textContent = `Skor: ${score}`;
+        function updateGame() {
+            if (!gameState.isPlaying) return;
+
+            // Engelleri hareket ettir
+            gameState.obstacles.forEach((obstacle, index) => {
+                obstacle.x -= gameState.speed;
+                obstacle.element.style.right = obstacle.x + 'px';
+
+                // Çarpışma kontrolü
+                if (checkCollision(obstacle.element)) {
+                    gameOver();
+                    return;
+                }
+
+                // Ekrandan çıkan engelleri temizle
+                if (obstacle.x > gameContainer.offsetWidth + 100) {
+                    gameContainer.removeChild(obstacle.element);
+                    gameState.obstacles.splice(index, 1);
+                    
+                    // Skor artır
+                    gameState.score++;
+                    gameState.bonkBalance += 50;
+                    updateScore();
+                }
+            });
+
+            // Coinleri hareket ettir
+            gameState.coins.forEach((coin, index) => {
+                if (coin.collected) return;
+
+                coin.x -= gameState.speed;
+                coin.element.style.right = coin.x + 'px';
+
+                // Coin toplama kontrolü
+                if (checkCoinCollision(coin.element)) {
+                    coin.collected = true;
+                    gameContainer.removeChild(coin.element);
+                    gameState.coins.splice(index, 1);
+                    gameState.bonkBalance += 100;
+                    createParticle(coin.x, 180, '+100');
+                    updateScore();
+                }
+
+                // Ekrandan çıkan coinleri temizle
+                if (coin.x > gameContainer.offsetWidth + 100) {
+                    gameContainer.removeChild(coin.element);
+                    gameState.coins.splice(index, 1);
+                }
+            });
+
+            // Zorluk artışı
+            if (gameState.score > 0 && gameState.score % 10 === 0) {
+                gameState.speed += 0.1;
+                gameState.minObstacleInterval = Math.max(1000, gameState.minObstacleInterval - 100);
             }
+        }
+
+        // Çarpışma kontrolü
+        function checkCollision(element) {
+            const dinoRect = dino.getBoundingClientRect();
+            const elementRect = element.getBoundingClientRect();
+
+            return !(dinoRect.right < elementRect.left || 
+                    dinoRect.left > elementRect.right || 
+                    dinoRect.bottom < elementRect.top || 
+                    dinoRect.top > elementRect.bottom);
+        }
+
+        // Coin çarpışma kontrolü
+        function checkCoinCollision(element) {
+            const dinoRect = dino.getBoundingClientRect();
+            const coinRect = element.getBoundingClientRect();
+
+            return !(dinoRect.right < coinRect.left || 
+                    dinoRect.left > coinRect.right || 
+                    dinoRect.bottom < coinRect.top || 
+                    dinoRect.top > coinRect.bottom);
+        }
+
+        // Skor güncelleme
+        function updateScore() {
+            scoreElement.textContent = `Skor: ${gameState.score}`;
+            bonkCounterElement.textContent = `BONK: ${gameState.bonkBalance}`;
+            finalScoreElement.textContent = gameState.score;
+            bonkEarnedElement.textContent = gameState.bonkBalance;
         }
 
         // Oyun bitti
         function gameOver() {
-            isGameOver = true;
-            clearInterval(gameLoopInterval);
-            clearInterval(coinInterval);
-            finalScoreElement.textContent = score;
-            bonkEarnedElement.textContent = bonkBalance;
-            gameOverScreen.style.visibility = 'visible';
+            gameState.isPlaying = false;
+            clearInterval(gameState.gameLoop);
+            clearInterval(gameState.obstacleInterval);
+            clearInterval(gameState.coinInterval);
+            gameOverScreen.style.display = 'block';
             saveGameData();
         }
 
@@ -242,9 +453,8 @@
         async function watchAdToRevive() {
             try {
                 await show_8946116();
-                gameOverScreen.style.visibility = 'hidden';
-                isGameOver = false;
-                startGame();
+                gameOverScreen.style.display = 'none';
+                restartGame();
             } catch (error) {
                 console.error('Reklam hatası:', error);
                 restartGame();
@@ -253,19 +463,78 @@
 
         // Oyunu yeniden başlat
         function restartGame() {
-            gameOverScreen.style.visibility = 'hidden';
-            isGameOver = false;
-            score = 0;
-            bonkBalance = 0;
-            scoreElement.textContent = 'Skor: 0';
-            bonkCounterElement.textContent = 'BONK: 0';
-            startGame();
+            // Temizlik
+            gameState.obstacles.forEach(obstacle => {
+                gameContainer.removeChild(obstacle.element);
+            });
+            gameState.coins.forEach(coin => {
+                if (!coin.collected) {
+                    gameContainer.removeChild(coin.element);
+                }
+            });
+
+            // Oyun durumunu sıfırla
+            gameState.obstacles = [];
+            gameState.coins = [];
+            gameState.isPlaying = true;
+            gameState.score = 0;
+            gameState.bonkBalance = 0;
+            gameState.speed = 2;
+            gameOverScreen.style.display = 'none';
+
+            // Zamanlayıcıları başlat
+            startGameTimers();
+            updateScore();
         }
 
-        // Oyunu başlat
-        function startGame() {
-            let gameLoopInterval = setInterval(gameLoop, 10);
-            let coinInterval = setInterval(createCoin, 2000);
+        // Oyun zamanlayıcılarını başlat
+        function startGameTimers() {
+            if (gameState.gameLoop) clearInterval(gameState.gameLoop);
+            if (gameState.obstacleInterval) clearInterval(gameState.obstacleInterval);
+            if (gameState.coinInterval) clearInterval(gameState.coinInterval);
+
+            // Ana oyun döngüsü
+            gameState.gameLoop = setInterval(updateGame, 16);
+
+            // Engel oluşturma döngüsü
+            gameState.obstacleInterval = setInterval(() => {
+                if (gameState.isPlaying) {
+                    createObstacle();
+                }
+            }, 2000);
+
+            // Coin oluşturma döngüsü
+            gameState.coinInterval = setInterval(() => {
+                if (gameState.isPlaying) {
+                    createCoin();
+                }
+            }, 3000);
+        }
+
+        // Verileri kaydet
+        async function saveGameData() {
+            if (!tg.initDataUnsafe?.user?.id) return;
+
+            await DATABASE.games.updateGameStats(tg.initDataUnsafe.user.id, 'dinoRunner', {
+                score: gameState.score,
+                bonkEarned: gameState.bonkBalance
+            });
+        }
+
+        // Verileri yükle
+        async function loadGameData() {
+            if (!tg.initDataUnsafe?.user?.id) return;
+
+            try {
+                const user = await DATABASE.users.getUser(tg.initDataUnsafe.user.id);
+                if (user && user.gameStats && user.gameStats.dinoRunner) {
+                    // İstatistikleri yükle
+                    const stats = user.gameStats.dinoRunner;
+                    document.getElementById('highScore').textContent = `En Yüksek Skor: ${stats.highScore || 0}`;
+                }
+            } catch (error) {
+                console.error('Veri yükleme hatası:', error);
+            }
         }
 
         // Kontroller
@@ -279,50 +548,14 @@
         document.addEventListener('touchstart', jump);
         document.addEventListener('click', jump);
 
-        // Veri kaydetme
-        async function saveGameData() {
-            if (!tg.initDataUnsafe?.user?.id) return;
-
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`, {
-                    headers: {
-                        'X-Master-Key': JSONBIN_CONFIG.apiKey
-                    }
-                });
-                
-                const data = await response.json();
-                if (!data.users) data.users = {};
-                
-                const userId = tg.initDataUnsafe.user.id;
-                
-                data.users[userId] = {
-                    ...data.users[userId],
-                    dinoHighScore: Math.max(data.users[userId]?.dinoHighScore || 0, score),
-                    bonkBalance: (data.users[userId]?.bonkBalance || 0) + bonkBalance,
-                    lastPlayed: new Date().toISOString()
-                };
-
-                await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_CONFIG.apiKey
-                    },
-                    body: JSON.stringify(data)
-                });
-            } catch (error) {
-                console.error('Veri kaydetme hatası:', error);
-            }
-        }
-
-        // JSONbin.io Konfigürasyonu
-        const JSONBIN_CONFIG = {
-            binId: '67b0a195ad19ca34f804ba90',
-            apiKey: '$2a$10$m3ykh1NKxmtQDVM140H6TOTqsemkiBEdfdQnG/ApyhjJ1Duj2Ri6W'
+        // Oyun başlangıcı
+        window.onload = function() {
+            loadGameData();
+            startGameTimers();
         };
 
-        // Oyunu başlat
-        startGame();
+        // Sayfa kapatılmadan önce verileri kaydet
+        window.addEventListener('beforeunload', saveGameData);
     </script>
 </body>
 </html>
