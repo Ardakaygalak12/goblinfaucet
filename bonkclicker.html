@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BONK Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="database.js"></script>
     <script src='//whephiwums.com/vignette.min.js' data-zone='8946116' data-sdk='show_8946116'></script>
     <style>
         * {
@@ -23,8 +24,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
+        }
+
+        #gameWrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            padding-bottom: 70px;
+            gap: 20px;
         }
 
         .game-container {
@@ -33,6 +44,16 @@
             text-align: center;
             position: relative;
             z-index: 1;
+        }
+
+        /* Yan Banner Reklamlar */
+        .side-banner {
+            width: 160px;
+            height: 600px;
+            background: white;
+            position: sticky;
+            top: 20px;
+            display: none;
         }
 
         .score-board {
@@ -118,6 +139,7 @@
             animation: particle 0.8s ease-out forwards;
             font-size: 24px;
             font-weight: bold;
+            color: white;
             text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
         }
 
@@ -175,24 +197,14 @@
             color: #6366F1;
         }
 
-        .banner-ad {
+        .bottom-banner {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
             height: 60px;
-            z-index: 4;
-        }
-
-        .top-banner {
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 500px;
-            height: 90px;
             background: white;
-            border-radius: 12px;
-            overflow: hidden;
+            z-index: 4;
         }
 
         .achievement {
@@ -210,33 +222,61 @@
         .achievement.show {
             transform: translateX(0);
         }
+
+        /* Responsive Tasarım */
+        @media (min-width: 1200px) {
+            .side-banner {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .bonk-emoji {
+                font-size: 80px;
+            }
+
+            .score {
+                font-size: 32px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- Üst Banner Reklam -->
-        <div class="top-banner" id="topBanner">
-            <!-- Banner reklam kodu buraya -->
+    <div id="gameWrapper">
+        <!-- Sol Banner -->
+        <div class="side-banner left" id="leftBanner">
+            <!-- Banner reklam kodu buraya gelecek -->
         </div>
 
-        <div class="score-board">
-            <h2>BONK Sayacı</h2>
-            <p class="score" id="score">0</p>
-            <p id="perClick">Her tıklama: 1 BONK</p>
+        <div class="game-container">
+            <div class="score-board">
+                <h2>BONK Sayacı</h2>
+                <p class="score" id="score">0</p>
+                <p id="perClick">Her tıklama: 1 BONK</p>
+            </div>
+
+            <div class="bonk-emoji" id="bonkEmoji">🪙</div>
+
+            <div class="upgrade-grid">
+                <button class="upgrade-btn" onclick="watchAdForBoost()">
+                    ⚡ 2x Bonus (30s)
+                </button>
+                <button class="upgrade-btn" onclick="buyAutoClicker()" id="autoClickerBtn">
+                    🤖 Auto Clicker: 100 BONK
+                </button>
+                <button class="upgrade-btn" onclick="upgradeClickValue()" id="upgradeBtn">
+                    💪 Güç Artır: 50 BONK
+                </button>
+            </div>
         </div>
 
-        <div class="bonk-emoji" id="bonkEmoji">🪙</div>
-
-        <div class="upgrade-grid">
-            <button class="upgrade-btn" onclick="watchAdForBoost()">
-                ⚡ 2x Bonus (30s)
-            </button>
-            <button class="upgrade-btn" onclick="buyAutoClicker()" id="autoClickerBtn">
-                🤖 Auto Clicker: 100 BONK
-            </button>
-            <button class="upgrade-btn" onclick="upgradeClickValue()" id="upgradeBtn">
-                💪 Güç Artır: 50 BONK
-            </button>
+        <!-- Sağ Banner -->
+        <div class="side-banner right" id="rightBanner">
+            <!-- Banner reklam kodu buraya gelecek -->
         </div>
     </div>
 
@@ -264,9 +304,9 @@
         🏆 Başarı Kazanıldı!
     </div>
 
-    <!-- Alt Banner Reklam -->
-    <div class="banner-ad" id="bottomBanner">
-        <!-- Banner reklam kodu buraya -->
+    <!-- Alt Banner -->
+    <div class="bottom-banner" id="bottomBanner">
+        <!-- Banner reklam kodu buraya gelecek -->
     </div>
 
     <script>
@@ -361,6 +401,9 @@
             // Buton durumlarını güncelle
             document.getElementById('autoClickerBtn').classList.toggle('disabled', gameState.score < 100);
             document.getElementById('upgradeBtn').classList.toggle('disabled', gameState.score < 50);
+
+            // Verileri kaydet
+            saveGameData();
         }
 
         // Reklam izleme ve bonus
@@ -459,78 +502,32 @@
         async function saveGameData() {
             if (!tg.initDataUnsafe?.user?.id) return;
 
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`, {
-                    headers: {
-                        'X-Master-Key': JSONBIN_CONFIG.apiKey
-                    }
-                });
-                
-                const data = await response.json();
-                if (!data.users) data.users = {};
-                
-                const userId = tg.initDataUnsafe.user.id;
-                
-                data.users[userId] = {
-                    ...data.users[userId],
-                    clickerScore: Math.max(data.users[userId]?.clickerScore || 0, gameState.score),
-                    bonkBalance: (data.users[userId]?.bonkBalance || 0) + gameState.score,
-                    lastPlayed: new Date().toISOString(),
-                    achievements: Array.from(gameState.achievements),
-                    stats: {
-                        totalClicks: gameState.totalClicks,
-                        autoClickers: gameState.autoClickerCount,
-                        clickPower: gameState.clickValue
-                    }
-                };
-
-                await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_CONFIG.apiKey
-                    },
-                    body: JSON.stringify(data)
-                });
-            } catch (error) {
-                console.error('Veri kaydetme hatası:', error);
-            }
+            await DATABASE.games.updateGameStats(tg.initDataUnsafe.user.id, 'clicker', {
+                clicks: gameState.totalClicks,
+                autoClickers: gameState.autoClickerCount,
+                bonkEarned: gameState.score
+            });
         }
 
-        // Oyun verilerini periyodik olarak kaydet
-        setInterval(saveGameData, 30000);
-
-        // Sayfa kapatılmadan önce verileri kaydet
-        window.addEventListener('beforeunload', saveGameData);
-
-        // Önceki verileri yükle
+        // Verileri yükleme
         async function loadGameData() {
             if (!tg.initDataUnsafe?.user?.id) return;
 
             try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_CONFIG.binId}/latest`, {
-                    headers: {
-                        'X-Master-Key': JSONBIN_CONFIG.apiKey
-                    }
-                });
-                
-                const data = await response.json();
-                const userId = tg.initDataUnsafe.user.id;
-                const userData = data.users?.[userId];
-
-                if (userData) {
+                const user = await DATABASE.users.getUser(tg.initDataUnsafe.user.id);
+                if (user && user.gameStats && user.gameStats.clicker) {
+                    const stats = user.gameStats.clicker;
+                    
+                    // Auto Clicker'ları yükle
+                    gameState.autoClickerCount = stats.autoClickers || 0;
+                    updateAutoClicker();
+                    
                     // Başarıları yükle
-                    if (userData.achievements) {
-                        userData.achievements.forEach(id => gameState.achievements.add(id));
+                    if (user.achievements) {
+                        user.achievements.forEach(id => gameState.achievements.add(id));
                     }
 
-                    // İstatistikleri yükle
-                    if (userData.stats) {
-                        gameState.autoClickerCount = userData.stats.autoClickers || 0;
-                        gameState.clickValue = userData.stats.clickPower || 1;
-                        updateAutoClicker();
-                        updateScore();
-                    }
+                    updateScore();
                 }
             } catch (error) {
                 console.error('Veri yükleme hatası:', error);
@@ -541,6 +538,9 @@
         window.onload = function() {
             loadGameData();
         };
+
+        // Sayfa kapatılmadan önce verileri kaydet
+        window.addEventListener('beforeunload', saveGameData);
     </script>
 </body>
 </html>
