@@ -2,319 +2,168 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BONK Coin Airdrop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="database.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        :root {
-            --primary: #6366F1;
-            --primary-dark: #4F46E5;
-            --secondary: #8B5CF6;
-            --bg-light: #F8FAFC;
-            --text-dark: #1E293B;
-            --text-light: #64748B;
-        }
-
         body {
-            background: var(--bg-light);
-            color: var(--text-dark);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 16px;
-            padding-bottom: 70px;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 24px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            font-weight: 800;
-            position: relative;
-            z-index: 1;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-card h3 {
-            color: var(--text-light);
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .stat-card p {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .referral-box {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .referral-link {
-            background: #F1F5F9;
-            padding: 16px;
-            border-radius: 12px;
-            margin: 15px 0;
-            font-family: monospace;
-            font-size: 14px;
-            word-break: break-all;
-        }
-
-        .copy-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
-        }
-
-        .game-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .game-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .game-content {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .game-content h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .game-content p {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .play-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .play-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            z-index: 1001;
-            display: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .ad-container {
-            margin: 20px 0;
-            min-height: 100px;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .banner-ad {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: white;
-            text-align: center;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header {
-                padding: 20px;
-                border-radius: 15px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .game-img {
-                height: 160px;
-            }
-
-            .stat-card p {
-                font-size: 20px;
-            }
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>BONK Coin Airdrop</h1>
-            <p>170 Gün Boyunca Aktif!</p>
-        </div>
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">BONK Coin Airdrop</h1>
+            <p class="text-lg text-gray-600">Katılarak BONK tokenlerini kazanın! Kalan Süre: <span id="timeLeft" class="font-medium"></span></p>
+        </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Toplam Katılımcı</h3>
-                <p id="totalParticipants">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Toplam BONK</h3>
-                <p id="totalBonk">0</p>
-            </div>
-        </div>
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Airdrop Bölümü -->
+            <section class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold mb-4">Airdrop</h2>
+                <p class="text-gray-600 mb-4">Airdrop'a katılarak BONK tokenlerini kazanın. Ödemeler cüzdanınıza yapılacaktır. Unutmayın, airdrop dağıtımı bakiyenize göre gerçekleştirilecektir.</p>
+                <p class="text-gray-600 mb-6">Ayrıca çözdüğünüz shortlink'ler, izlediğiniz PTC reklamlar ve oynadığınız oyunlar da BONK kazanmanızı sağlar.</p>
+                <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="joinAirdrop">Katıl</button>
+            </section>
 
-        <div class="referral-box">
-            <h3>Referans Linkiniz</h3>
-            <div class="referral-link" id="refLink">
-                Yükleniyor...
-            </div>
-            <button class="copy-btn" onclick="copyRefLink()">Kopyala</button>
-            <p>Her referans için 1000 BONK kazanın!</p>
-        </div>
+            <!-- PTC Ads Bölümü -->
+            <section class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold mb-4">PTC Ads</h2>  
+                <div id="ptcAdsContainer">
+                    <!-- PTC Ads burada listelenecek -->
+                </div>
+            </section>
 
-        <div class="games-grid">
-            <div class="game-card">
-                <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/flappy-preview.png" alt="Flappy BONK" class="game-img">
-                <div class="game-content">
-                    <h3>Flappy BONK</h3>
-                    <p>Her engelde 500 BONK kazanın!<br>Öldüğünüzde reklam izleyerek devam edin.</p>
-                    <button class="play-btn" onclick="playGame('flappy')">OYNA</button>
+            <!-- Shortlinks Bölümü -->  
+            <section class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold mb-4">Shortlinks</h2>
+                <div id="shortlinksContainer">
+                    <!-- Shortlink'ler burada listelenecek -->  
+                </div>
+            </section>
+        </main>
+
+        <section class="mt-8">
+            <h2 class="text-2xl font-semibold mb-4">Referans Sistemi</h2>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <p class="text-gray-600 mb-4">Referans linkinizi paylaşarak arkadaşlarınızı davet edin ve her referans için 1000 BONK kazanın!</p>
+                <div class="bg-gray-100 rounded-md p-4 mb-4 font-mono text-sm break-all" id="refLink">
+                    Yükleniyor...
+                </div>
+                <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="copyRefLink">Kopyala</button>
+            </div>  
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">İstatistikler</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-center">
+                        <div class="bg-indigo-600 text-white rounded-full p-2 mr-4">
+                            <i data-feather="users" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Toplam Kullanıcı</p>
+                            <p class="text-2xl font-semibold" id="totalUsers">0</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="bg-green-600 text-white rounded-full p-2 mr-4">
+                            <i data-feather="dollar-sign" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Toplam BONK</p>
+                            <p class="text-2xl font-semibold" id="totalBonk">0</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="game-card">
-                <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/clicker-preview.png" alt="BONK Clicker" class="game-img">
-                <div class="game-content">
-                    <h3>BONK Clicker</h3>
-                    <p>Her tıklamada BONK kazanın!<br>2x bonus için reklam izleyin.</p>
-                    <button class="play-btn" onclick="playGame('clicker')">OYNA</button>
+        <section class="mt-8">
+            <h2 class="text-2xl font-semibold mb-4">Oyunlar</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/flappy-preview.png" alt="Flappy BONK" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Flappy BONK</h3>
+                        <p class="text-gray-600 mb-4">Her engelde 500 BONK kazanın! Öldüğünüzde reklam izleyerek devam edin.</p>
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('flappy')">Oyna</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/clicker-preview.png" alt="BONK Clicker" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">BONK Clicker</h3>
+                        <p class="text-gray-600 mb-4">Her tıklamada BONK kazanın! 2x bonus için reklam izleyin.</p>
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('clicker')">Oyna</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/dino-preview.png" alt="BONK Dino" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">BONK Dino</h3>
+                        <p class="text-gray-600 mb-4">Koşarken BONK topla! Öldüğünüzde reklam izleyerek devam edin.</p>
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('dino')">Oyna</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="game-card">
-                <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/dino-preview.png" alt="BONK Dino" class="game-img">
-                <div class="game-content">
-                    <h3>BONK Dino</h3>
-                    <p>Koşarken BONK topla!<br>Öldüğünüzde reklam izleyerek devam edin.</p>
-                    <button class="play-btn" onclick="playGame('dino')">OYNA</button>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
 
-    <div class="notification" id="notification"></div>
+    <footer class="mt-8">
+        <nav class="bg-white shadow-lg fixed bottom-0 left-0 right-0 py-3">
+            <ul class="flex justify-around">
+                <li>
+                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
+                        <i data-feather="home" class="h-6 w-6 mb-1"></i>
+                        <span class="text-sm">Ana Sayfa</span>  
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="tasksLink">
+                        <i data-feather="check-square" class="h-6 w-6 mb-1"></i>
+                        <span class="text-sm">Görevler</span>
+                    </a>  
+                </li>
+                <li>
+                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="gamesLink">
+                        <i data-feather="box" class="h-6 w-6 mb-1"></i>  
+                        <span class="text-sm">Oyunlar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="referralsLink">
+                        <i data-feather="users" class="h-6 w-6 mb-1"></i>
+                        <span class="text-sm">Referanslar</span>
+                    </a>
+                </li>
+                <li>  
+                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="friendsLink">
+                        <i data-feather="user-plus" class="h-6 w-6 mb-1"></i>
+                        <span class="text-sm">Arkadaşlar</span>  
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
 
-    <!-- Ad Containers -->
-    <div class="ad-container" id="topBanner">
-        <!-- Banner reklam kodu -->
-    </div>
-
-    <!-- Sabit Alt Banner -->
-    <div class="banner-ad" id="bottomBanner">
-        <!-- Banner reklam kodu -->
-    </div>
+    <div id="notification" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-opacity duration-300" style="opacity: 0; pointer-events: none;"></div>
 
     <script src='//whephiwums.com/vignette.min.js' data-zone='8946116' data-sdk='show_8946116'></script>
     <script>
+        feather.replace();
+        
         // Telegram WebApp
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
-
+        
         // Oyun Yönetimi
         function playGame(gameType) {
             const gameUrls = {
@@ -322,11 +171,11 @@
                 clicker: 'bonkclicker.html',
                 dino: 'bonkrunner.html'
             };
-            
+
             window.location.href = gameUrls[gameType];
         }
 
-        // Referans Sistemi
+        // Referans Sistemi  
         function generateRefLink(userId) {
             return `https://t.me/bonkairdropgame_bot?start=${userId}`;
         }
@@ -337,38 +186,94 @@
                 await navigator.clipboard.writeText(refLink);
                 showNotification('Referans linki kopyalandı!');
             } catch (error) {
-                showNotification('Kopyalama hatası!');
+                showNotification('Kopyalama hatası!');  
             }
         }
 
-        // UI Helpers
+        document.getElementById('copyRefLink').addEventListener('click', copyRefLink);
+
+        // Airdrop süresi hesaplama
+        function calculateTimeLeft() {
+            const endDate = new Date('2024-01-01').getTime();
+            const now = new Date().getTime();
+            const timeLeft = endDate - now;
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+
+            document.getElementById('timeLeft').textContent = `${days} gün`;
+        }
+
+        calculateTimeLeft();
+        setInterval(calculateTimeLeft, 60000);
+
+        // Airdrop'a katılma işlemi
+        document.getElementById('joinAirdrop').addEventListener('click', async () => {
+            // Airdrop'a katılma işlemleri burada gerçekleştirilecek 
+            showNotification('Airdrop katılımınız alındı!');
+        });
+
+        // Navbar bağlantılarının işlevselliği
+        document.getElementById('tasksLink').addEventListener('click', () => {
+            showNotification('Görevler sayfası henüz hazır değil.');  
+        });
+
+        document.getElementById('gamesLink').addEventListener('click', () => {
+            showNotification('Oyunlar sayfası henüz hazır değil.');
+        });
+
+        document.getElementById('referralsLink').addEventListener('click', () => {
+            showNotification('Referanslar sayfası henüz hazır değil.');
+        });
+
+        document.getElementById('friendsLink').addEventListener('click', () => {
+            showNotification('Arkadaşlar sayfası henüz hazır değil.');  
+        });
+
+        // PTC Ads ve Shortlink'lerin listelenmesi
+        async function listPtcAds() {
+            // Admin panelinden PTC reklamları alınıp burada listelenecek
+            const ptcAdsContainer = document.getElementById('ptcAdsContainer');
+            ptcAdsContainer.innerHTML = '<p class="text-gray-600">Henüz PTC reklam yok.</p>';
+        }
+
+        async function listShortlinks() {  
+            // Admin panelinden shortlink'ler alınıp burada listelenecek
+            const shortlinksContainer = document.getElementById('shortlinksContainer');  
+            shortlinksContainer.innerHTML = '<p class="text-gray-600">Henüz shortlink yok.</p>';
+        }
+
+        listPtcAds();
+        listShortlinks();
+
+        // Bildirim gösterme fonksiyonu 
         function showNotification(message, duration = 3000) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.style.display = 'block';
+            notification.style.opacity = '1';
+            notification.style.pointerEvents = 'auto';
+
             setTimeout(() => {
-                notification.style.display = 'none';
-            }, duration);
+                notification.style.opacity= '0';
+notification.style.pointerEvents = 'none';
+}, duration);
+}
+
+        // Sayfa yükleme işlemleri
+    window.onload = async function() {
+        // Telegram kullanıcı bilgisi
+        const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
+
+        // Referans linkini oluştur 
+        const refLink = generateRefLink(userId);
+        document.getElementById('refLink').textContent = refLink;
+
+        // İstatistikleri yükle
+        const stats = await DATABASE.stats.getGlobalStats();
+        if (stats) {
+            document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+            document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();  
         }
-
-        // Sayfa Yükleme
-        window.onload = async function() {
-            // Telegram kullanıcı bilgisi
-            const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-            
-            // Referans linkini oluştur
-            const refLink = generateRefLink(userId);
-            document.getElementById('refLink').textContent = refLink;
-
-            // İstatistikleri yükle
-            const stats = await DATABASE.stats.getGlobalStats();
-            if (stats) {
-                document.getElementById('totalParticipants').textContent = 
-                    stats.totalUsers.toLocaleString();
-                document.getElementById('totalBonk').textContent = 
-                    stats.totalBonk.toLocaleString();
-            }
-        };
-    </script>
+    };
+</script>
 </body>
 </html>
