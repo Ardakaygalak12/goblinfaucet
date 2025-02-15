@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,39 +30,39 @@
     <div class="container mx-auto px-4 py-8">
         <header class="mb-8">
             <h1 class="text-4xl font-bold mb-2">BONK Coin Airdrop</h1>
-            <p class="text-lg text-gray-600">Katılarak BONK tokenlerini kazanın! Kalan Süre: <span id="timeLeft" class="font-medium"></span></p>
+            <p class="text-lg text-gray-600">Earn BONK tokens by participating! Remaining Time: <span id="timeLeft" class="font-medium"></span></p>
         </header>
 
         <main>
-            <!-- Kullanıcı Profil Özeti -->
+            <!-- User Profile Summary -->
             <section class="bg-white rounded-lg shadow-md p-6 mb-8 flex items-center">
                 <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
                     <i data-feather="user" class="w-8 h-8 text-indigo-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-semibold" id="userNameDisplay">Misafir Kullanıcı</h3>
-                    <p class="text-gray-600">Toplam BONK: <span id="userBonkBalance">0</span></p>
+                    <h3 class="text-xl font-semibold" id="userNameDisplay">Guest User</h3>
+                    <p class="text-gray-600">Total BONK: <span id="userBonkBalance">0</span></p>
                 </div>
             </section>
 
-            <!-- Airdrop Bölümü -->
+            <!-- Airdrop Section -->
             <section class="bg-white rounded-lg shadow-md p-6 mb-8">
                 <h2 class="text-2xl font-semibold mb-4">Airdrop</h2>
-                <p class="text-gray-600 mb-4">Airdrop, 24 gün boyunca devam edecek. Her gün saat 00:00'dan sonra kalan gün sayısı 1 azalacak. Airdrop dağıtımı toplam BONK miktarına ve kazanılan BONK'a göre adil bir şekilde gerçekleştirilecek.</p>
-                <p class="text-gray-600 mb-6">Çözdüğünüz shortlink'ler, izlediğiniz PTC reklamlar ve oynadığınız oyunlar da BONK kazanmanızı sağlar. Kazanılan BONK'lar, airdrop havuzuna eklenecek ve snapshot'a göre dağıtılacak.</p>
+                <p class="text-gray-600 mb-4">The airdrop will continue for 230 days. Each day after 00:00, the remaining days will decrease by 1. Airdrop distribution will be fair based on total BONK amount and earned BONK.</p>
+                <p class="text-gray-600 mb-6">Solved shortlinks, watched PTC ads, and played games will help you earn BONK. Earned BONK will be added to the airdrop pool and distributed according to the snapshot.</p>
                 <div class="flex space-x-4">
                     <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="joinAirdrop">
-                        Katıl
+                        Join
                     </button>
                     <button class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition" id="airdropInfo">
-                        Detayları Gör
+                        View Details
                     </button>
                 </div>
             </section>
 
-            <!-- PTC Ads ve Shortlinks Bölümü -->
+            <!-- PTC Ads and Shortlinks Section -->
             <section class="mb-8">
-                <h2 class="text-2xl font-semibold mb-4">Kazanç Fırsatları</h2>
+                <h2 class="text-2xl font-semibold mb-4">Earning Opportunities</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h3 class="text-xl font-semibold mb-4 flex items-center">
@@ -70,7 +70,7 @@
                             PTC Ads
                         </h3>
                         <div id="ptcAdsContainer" class="space-y-4">
-                            <!-- PTC Ads burada listelenecek -->
+                            <!-- PTC Ads will be listed here -->
                         </div>
                     </div>
                     <div class="bg-white rounded-lg shadow-md p-6">
@@ -79,22 +79,22 @@
                             Shortlinks
                         </h3>
                         <div id="shortlinksContainer" class="space-y-4">
-                            <!-- Shortlink'ler burada listelenecek -->
+                            <!-- Shortlinks will be listed here -->
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- İstatistikler Bölümü -->
+            <!-- Platform Statistics -->
             <section class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 class="text-2xl font-semibold mb-4">Platform İstatistikleri</h2>
+                <h2 class="text-2xl font-semibold mb-4">Platform Statistics</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="flex items-center">
                         <div class="bg-indigo-600 text-white rounded-full p-2 mr-4">
                             <i data-feather="users" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <p class="text-gray-600">Toplam Kullanıcı</p>
+                            <p class="text-gray-600">Total Users</p>
                             <p class="text-2xl font-semibold" id="totalUsers">0</p>
                         </div>
                     </div>
@@ -103,7 +103,7 @@
                             <i data-feather="dollar-sign" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <p class="text-gray-600">Toplam BONK</p>
+                            <p class="text-gray-600">Total BONK</p>
                             <p class="text-2xl font-semibold" id="totalBonk">0</p>
                         </div>
                     </div>
@@ -112,50 +112,50 @@
                             <i data-feather="award" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <p class="text-gray-600">Toplam Ödül</p>
+                            <p class="text-gray-600">Total Rewards</p>
                             <p class="text-2xl font-semibold" id="totalRewards">0</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Arkadaşlar Bölümü -->
+            <!-- Referral System -->
             <section class="bg-white rounded-lg shadow-md p-6 mb-8" id="friendsSection">
-                <h2 class="text-2xl font-semibold mb-4">Referans Sistemi</h2>
+                <h2 class="text-2xl font-semibold mb-4">Referral System</h2>
                 <div class="mb-4">
-                    <h3 class="text-xl font-semibold mb-2">Referans Linkiniz</h3>
+                    <h3 class="text-xl font-semibold mb-2">Your Referral Link</h3>
                     <div class="bg-gray-100 rounded-md p-4 mb-4 font-mono text-sm break-all flex justify-between items-center" id="refLink">
-                        <span>Yükleniyor...</span>
+                        <span>Loading...</span>
                         <button id="copyRefLink" class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-md text-sm hover:bg-indigo-200 transition">
-                            Kopyala
+                            Copy
                         </button>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-xl font-semibold mb-2">Referans İstatistikleri</h3>
+                    <h3 class="text-xl font-semibold mb-2">Referral Statistics</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gray-100 p-4 rounded-lg">
-                            <p class="text-gray-600">Toplam Referans</p>
+                            <p class="text-gray-600">Total Referrals</p>
                             <p class="text-2xl font-semibold" id="totalReferrals">0</p>
                         </div>
                         <div class="bg-gray-100 p-4 rounded-lg">
-                            <p class="text-gray-600">Kazanılan BONK</p>
+                            <p class="text-gray-600">Earned BONK</p>
                             <p class="text-2xl font-semibold text-green-600" id="referralBonk">0</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Oyunlar Bölümü -->
+            <!-- Games Section -->
             <section class="mb-8" id="gamesSection">
-                <h2 class="text-2xl font-semibold mb-4">Oyunlar</h2>
+                <h2 class="text-2xl font-semibold mb-4">Games</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                         <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/flappy-preview.png" alt="Flappy BONK" class="w-full h-48 object-cover border-b-4 border-indigo-600">
                         <div class="p-6">
                             <h3 class="text-xl font-semibold mb-2">Flappy BONK</h3>
-                            <p class="text-gray-600 mb-4">Her engelde 500 BONK kazanın! Öldüğünüzde reklam izleyerek devam edin.</p>
-                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('flappy')">Oyna</button>
+                            <p class="text-gray-600 mb-4">Earn 500 BONK per obstacle! Continue by watching an ad when you die.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('flappy')">Play</button>
                         </div>
                     </div>
 
@@ -163,8 +163,8 @@
                         <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/clicker-preview.png" alt="BONK Clicker" class="w-full h-48 object-cover border-b-4 border-indigo-600">
                         <div class="p-6">
                             <h3 class="text-xl font-semibold mb-2">BONK Clicker</h3>
-                            <p class="text-gray-600 mb-4">Her tıklamada BONK kazanın! 2x bonus için reklam izleyin.</p>
-                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('clicker')">Oyna</button>
+                            <p class="text-gray-600 mb-4">Earn BONK with each click! Watch an ad for 2x bonus.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('clicker')">Play</button>
                         </div>
                     </div>
 
@@ -172,18 +172,18 @@
                         <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/dino-preview.png" alt="BONK Dino" class="w-full h-48 object-cover border-b-4 border-indigo-600">
                         <div class="p-6">
                             <h3 class="text-xl font-semibold mb-2">BONK Dino</h3>
-                            <p class="text-gray-600 mb-4">Koşarken BONK topla! Öldüğünüzde reklam izleyerek devam edin.</p>
-                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('dino')">Oyna</button>
+                            <p class="text-gray-600 mb-4">Collect BONK while running! Continue by watching an ad when you die.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('dino')">Play</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Görevler Bölümü -->
+            <!-- Tasks Section -->
             <section class="bg-white rounded-lg shadow-md p-6" id="tasksSection">
-                <h2 class="text-2xl font-semibold mb-4">Güncel Görevler</h2>
+                <h2 class="text-2xl font-semibold mb-4">Current Tasks</h2>
                 <div id="tasksList" class="space-y-4">
-                    <!-- Görevler burada listelenecek -->
+                    <!-- Tasks will be listed here -->
                 </div>
             </section>
         </main>
@@ -196,42 +196,42 @@
                 <li>
                     <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="home" class="h-6 w-6 mb-1"></i>
-                        <span class="text-sm">Ana Sayfa</span>  
+                        <span class="text-sm">Home</span>  
                     </a>
                 </li>
                 <li>
                     <a href="#tasksSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="check-square" class="h-6 w-6 mb-1"></i>
-                        <span class="text-sm">Görevler</span>
+                        <span class="text-sm">Tasks</span>
                     </a>  
                 </li>
                 <li>
                     <a href="#gamesSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="box" class="h-6 w-6 mb-1"></i>  
-                        <span class="text-sm">Oyunlar</span>
+                        <span class="text-sm">Games</span>
                     </a>
                 </li>
                 <li>  
                     <a href="#friendsSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="user-plus" class="h-6 w-6 mb-1"></i>
-                        <span class="text-sm">Arkadaşlar</span>  
+                        <span class="text-sm">Friends</span>  
                     </a>
                 </li>
             </ul>
         </nav>
     </footer>
 
-    <!-- Bildirim -->
+    <!-- Notification -->
     <div id="notification" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-opacity duration-300" style="opacity: 0; pointer-events:none;"></div>
 
     <!-- Airdrop Progress Modal -->
     <div id="airdropProgressModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
         <div class="bg-white rounded-lg p-8 max-w-md w-full">
-            <h2 class="text-2xl font-bold mb-4">Airdrop İlerleme Durumu</h2>
+            <h2 class="text-2xl font-bold mb-4">Airdrop Progress</h2>
             <div class="mb-4">
                 <div class="flex justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-500">Kalan Süre</span>
-                    <span class="text-sm font-medium text-gray-500" id="airdropTimeRemaining">24 gün</span>
+                    <span class="text-sm font-medium text-gray-500">Remaining Time</span>
+                    <span class="text-sm font-medium text-gray-500" id="airdropTimeRemaining">230 days</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5">
                     <div id="airdropProgressBar" class="bg-indigo-600 h-2.5 rounded-full progress-bar" style="width: 100%"></div>
@@ -239,27 +239,27 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-gray-100 p-4 rounded-lg text-center">
-                    <p class="text-gray-600 text-sm">Toplam Kazanılan BONK</p>
+                    <p class="text-gray-600 text-sm">Total Earned BONK</p>
                     <p class="text-xl font-bold text-green-600" id="totalEarnedBonk">0</p>
                 </div>
                 <div class="bg-gray-100 p-4 rounded-lg text-center">
-                    <p class="text-gray-600 text-sm">Günlük Ortalama</p>
+                    <p class="text-gray-600 text-sm">Daily Average</p>
                     <p class="text-xl font-bold text-indigo-600" id="dailyAverageBonk">0</p>
                 </div>
             </div>
             <button id="closeAirdropProgressModal" class="w-full mt-4 bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition">
-                Kapat
+                Close
             </button>
         </div>
     </div>
 
     <script src='//whephiwums.com/vignette.min.js' data-zone='8946116' data-sdk='show_8946116'></script>
     <script>
-        // Global Airdrop Ayarları
+        // Global Airdrop Configuration
         const AIRDROP_CONFIG = {
-            totalDays: 24,
-            minAdViewTime: 15, // saniye
-            minShortlinkTime: 10, // saniye
+            totalDays: 230,
+            minAdViewTime: 15, // seconds
+            minShortlinkTime: 10, // seconds
             bonkPerAdView: 100,
             bonkPerShortlink: 50,
             bonkPerTask: 200
@@ -272,7 +272,7 @@
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
 
-        // Bildirim Fonksiyonu
+        // Notification Function
         function showNotification(message, type = 'success', duration = 3000) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -291,7 +291,7 @@
             }, duration);
         }
 
-        // Oyun Yönetimi
+        // Game Management
         function playGame(gameType) {
             const gameUrls = {
                 flappy: 'flappybonk.html',
@@ -302,23 +302,23 @@
             window.location.href = gameUrls[gameType];
         }
 
-        // Referans Sistemi  
+        // Referral System  
         function generateRefLink(userId) {
             return `https://t.me/bonkairdropgame_bot?start=${userId}`;
         }
 
-        // Referans Linki Kopyalama
+        // Copy Referral Link
         async function copyRefLink() {
             const refLink = document.getElementById('refLink').querySelector('span').textContent;
             try {
                 await navigator.clipboard.writeText(refLink);
-                showNotification('Referans linki kopyalandı!');
+                showNotification('Referral link copied!');
             } catch (error) {
-                showNotification('Kopyalama hatası!', 'error');  
+                showNotification('Copy failed!', 'error');  
             }
         }
 
-        // Airdrop Süresi Hesaplama
+        // Calculate Remaining Airdrop Time
         function calculateTimeLeft() {
             const endDate = new Date();
             endDate.setDate(endDate.getDate() + AIRDROP_CONFIG.totalDays);
@@ -329,17 +329,17 @@
 
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
 
-            document.getElementById('timeLeft').textContent = `${days} gün`;
+            document.getElementById('timeLeft').textContent = `${days} days`;
         }
 
-        // Reklam İzleme Fonksiyonu
+        // Watch PTC Ad
         async function watchPtcAd(url, adId) {
             const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
             try {
                 const adWindow = window.open(url, '_blank', 'width=800,height=600');
                 
                 if (adWindow === null) {
-                    showNotification('Reklam penceresi engellenmiş. Lütfen tarayıcınızın popup engelini kaldırın.', 'error');
+                    showNotification('Ad window blocked. Please allow popups.', 'error');
                     return;
                 }
 
@@ -360,15 +360,15 @@
                                         userData.adViewCount = (userData.adViewCount || 0) + 1;
                                         await DATABASE.users.updateUser(userId, userData);
 
-                                        showNotification(`Reklam izleme ödülü kazanıldı! (${Math.floor(elapsedTime)} saniye)`, 'success');
+                                        showNotification(`Ad reward earned! (${Math.floor(elapsedTime)} seconds)`, 'success');
                                         updateAirdropProgress();
                                     })
                                     .catch(error => {
-                                        console.error('Reklam ödülü kayıt hatası:', error);
-                                        showNotification('Reklam ödülü kaydedilemedi.', 'error');
+                                        console.error('Ad reward recording error:', error);
+                                        showNotification('Ad reward could not be recorded.', 'error');
                                     });
                             } else {
-                                showNotification(`Reklam için yeterli süre izlenmedi. (${Math.floor(elapsedTime)} saniye)`, 'error');
+                                showNotification(`Insufficient ad viewing time. (${Math.floor(elapsedTime)} seconds)`, 'error');
                             }
                         }
                     }, 1000);
@@ -377,26 +377,26 @@
                         if (!adWindow.closed) {
                             clearInterval(viewTimer);
                             adWindow.close();
-                            showNotification('Reklam izleme süresi doldu.', 'error');
+                            showNotification('Ad viewing time expired.', 'error');
                         }
                     }, 60000);
                 } else {
-                    showNotification('Reklam penceresi açılamadı. Popup engelini kaldırın.', 'error');
+                    showNotification('Ad window could not be opened. Check popup blocker.', 'error');
                 }
             } catch (error) {
-                console.error('Reklam izleme hatası:', error);
-                showNotification('Reklam izleme sırasında bir hata oluştu.', 'error');
+                console.error('Ad watching error:', error);
+                showNotification('An error occurred while watching the ad.', 'error');
             }
         }
 
-        // Shortlink Çözme Fonksiyonu
+        // Shortlink Processing
         async function openShortlink(url, linkId) {
             const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
             try {
                 const linkWindow = window.open(url, '_blank', 'width=800,height=600');
                 
                 if (linkWindow === null) {
-                    showNotification('Shortlink penceresi engellenmiş. Lütfen tarayıcınızın popup engelini kaldırın.', 'error');
+                    showNotification('Shortlink window blocked. Please allow popups.', 'error');
                     return;
                 }
 
@@ -419,15 +419,15 @@
                                         userData.shortlinkCount = (userData.shortlinkCount || 0) + 1;
                                         await DATABASE.users.updateUser(userId, userData);
 
-                                        showNotification(`Shortlink ödülü kazanıldı! (${Math.floor(elapsedTime)} saniye)`, 'success');
+                                        showNotification(`Shortlink reward earned! (${Math.floor(elapsedTime)} seconds)`, 'success');
                                         updateAirdropProgress();
                                     })
                                     .catch(error => {
-                                        console.error('Shortlink ödülü kayıt hatası:', error);
-                                        showNotification('Shortlink ödülü kaydedilemedi.', 'error');
+                                        console.error('Shortlink reward recording error:', error);
+                                        showNotification('Shortlink reward could not be recorded.', 'error');
                                     });
                             } else {
-                                showNotification(`Shortlink için yeterli süre izlenmedi. (${Math.floor(elapsedTime)} saniye)`, 'error');
+                                showNotification(`Insufficient shortlink viewing time. (${Math.floor(elapsedTime)} seconds)`, 'error');
                             }
                         }
                     }, 1000);
@@ -436,51 +436,51 @@
                         if (!linkWindow.closed) {
                             clearInterval(viewTimer);
                             linkWindow.close();
-                            showNotification('Shortlink izleme süresi doldu.', 'error');
+                            showNotification('Shortlink viewing time expired.', 'error');
                         }
                     }, 60000);
                 } else {
-                    showNotification('Shortlink penceresi açılamadı. Popup engelini kaldırın.', 'error');
+                    showNotification('Shortlink window could not be opened. Check popup blocker.', 'error');
                 }
             } catch (error) {
-                console.error('Shortlink hatası:', error);
-                showNotification('Shortlink işleminde bir hata oluştu.', 'error');
+                console.error('Shortlink error:', error);
+                showNotification('An error occurred with the shortlink.', 'error');
             }
         }
 
-        // Airdrop İlerleme Durumu Güncelleme
+        // Airdrop Progress Update
         async function updateAirdropProgress() {
             const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
             try {
                 const userData = await DATABASE.users.getUser(userId);
                 const stats = await DATABASE.stats.getGlobalStats();
 
-                // Kalan günü hesapla
+                // Calculate remaining days
                 const startDate = new Date(userData.airdropStartDate || Date.now());
                 const currentDate = new Date();
                 const elapsedDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
                 const remainingDays = Math.max(0, AIRDROP_CONFIG.totalDays - elapsedDays);
 
-                // Progress bar'ı güncelle
+                // Update progress bar
                 const progressPercentage = Math.max(0, Math.min(100, (elapsedDays / AIRDROP_CONFIG.totalDays) * 100));
                 document.getElementById('airdropProgressBar').style.width = `${100 - progressPercentage}%`;
-                document.getElementById('airdropTimeRemaining').textContent = `${remainingDays} gün`;
+                document.getElementById('airdropTimeRemaining').textContent = `${remainingDays} days`;
 
-                // Toplam kazanılan BONK'u hesapla
+                // Calculate total earned BONK
                 const totalEarnedBonk = userData.bonkBalance || 0;
                 const dailyAverageBonk = totalEarnedBonk / (elapsedDays || 1);
 
                 document.getElementById('totalEarnedBonk').textContent = totalEarnedBonk.toLocaleString();
                 document.getElementById('dailyAverageBonk').textContent = Math.floor(dailyAverageBonk).toLocaleString();
             } catch (error) {
-                console.error('Airdrop ilerleme hatası:', error);
+                console.error('Airdrop progress update error:', error);
             }
         }
 
-        // Event Listener'ları Ekle
+        // Event Listeners
         document.getElementById('copyRefLink').addEventListener('click', copyRefLink);
         
-        // Airdrop Bilgi Modalı
+        // Airdrop Info Modal
         document.getElementById('airdropInfo').addEventListener('click', () => {
             updateAirdropProgress();
             document.getElementById('airdropProgressModal').classList.remove('hidden');
@@ -492,7 +492,7 @@
             document.getElementById('airdropProgressModal').classList.add('hidden');
         });
 
-        // Airdrop'a katılma işlemi
+        // Join Airdrop
         document.getElementById('joinAirdrop').addEventListener('click', async () => {
             const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
             try {
@@ -501,17 +501,17 @@
                     userData.joinedAirdrop = true;
                     userData.airdropStartDate = new Date().toISOString();
                     await DATABASE.users.updateUser(userId, userData);
-                    showNotification('Airdrop\'a başarıyla katıldınız!');
+                    showNotification('Successfully joined Airdrop!');
                 } else {
-                    showNotification('Zaten Airdrop\'a katılmışsınız!', 'error');
+                    showNotification('You have already joined the Airdrop!', 'error');
                 }
             } catch (error) {
-                console.error('Airdrop katılım hatası:', error);
-                showNotification('Airdrop\'a katılırken bir hata oluştu.', 'error');
+                console.error('Airdrop join error:', error);
+                showNotification('An error occurred while joining Airdrop.', 'error');
             }
         });
 
-        // PTC Ads ve Shortlink'lerin listelenmesi
+        // Fetch and List PTC Ads
         async function listPtcAds() {
             try {
                 const data = await DATABASE.api.getAllData();
@@ -523,25 +523,26 @@
                             <h4 class="font-semibold text-gray-800 mb-2">${ad.title}</h4>
                             <div class="flex justify-between items-center">
                                 <span class="text-green-600 font-medium">
-                                    Görüntüleme: ${ad.bonkPerView} BONK
+                                    View: ${ad.bonkPerView} BONK
                                 </span>
                                 <button onclick="watchPtcAd('${ad.url}')"
                                 class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    İzle
+                                    Watch
                                 </button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    ptcAdsContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz PTC reklam yok.</p>';
+                    ptcAdsContainer.innerHTML = '<p class="text-gray-600 text-center">No PTC ads available.</p>';
                 }
             } catch (error) {
-                console.error('PTC reklamları yüklenirken hata oluştu:', error);
+                console.error('PTC ads loading error:', error);
                 document.getElementById('ptcAdsContainer').innerHTML = 
-                    '<p class="text-gray-600 text-center">Reklamlar yüklenemedi.</p>';
+                    '<p class="text-gray-600 text-center">Failed to load ads.</p>';
             }
         }
 
+        // Fetch and List Shortlinks
         async function listShortlinks() {  
             try {
                 const data = await DATABASE.api.getAllData();
@@ -553,25 +554,26 @@
                             <h4 class="font-semibold text-gray-800 mb-2">${link.title}</h4>
                             <div class="flex justify-between items-center">
                                 <span class="text-green-600 font-medium">
-                                    Çözme: ${link.bonkReward} BONK
+                                    Solve: ${link.bonkReward} BONK
                                 </span>
                                 <button onclick="openShortlink('${link.url}')" 
                                     class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    Çöz
+                                    Solve
                                 </button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    shortlinksContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz shortlink yok.</p>';
+                    shortlinksContainer.innerHTML = '<p class="text-gray-600 text-center">No shortlinks available.</p>';
                 }
             } catch (error) {
-                console.error('Shortlinkler yüklenirken hata oluştu:', error);
+                console.error('Shortlinks loading error:', error);
                 document.getElementById('shortlinksContainer').innerHTML = 
-                    '<p class="text-gray-600 text-center">Shortlinkler yüklenemedi.</p>';
+                    '<p class="text-gray-600 text-center">Failed to load shortlinks.</p>';
             }
         }
 
+        // Fetch and List Tasks
         async function listTasks() {
             try {
                 const data = await DATABASE.api.getAllData();
@@ -588,38 +590,38 @@
                                 </span>
                                 <button onclick="completeTask('${task.id}')" 
                                     class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    Tamamla
+                                    Complete
                                 </button>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    tasksList.innerHTML = '<p class="text-gray-600 text-center">Henüz görev yok.</p>';
+                    tasksList.innerHTML = '<p class="text-gray-600 text-center">No tasks available.</p>';
                 }
             } catch (error) {
-                console.error('Görevler yüklenirken hata oluştu:', error);
+                console.error('Tasks loading error:', error);
                 document.getElementById('tasksList').innerHTML = 
-                    '<p class="text-gray-600 text-center">Görevler yüklenemedi.</p>';
+                    '<p class="text-gray-600 text-center">Failed to load tasks.</p>';
             }
         }
 
-        // Görev Tamamlama Fonksiyonu
+        // Task Completion Function
         async function completeTask(taskId) {
             const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
             try {
-                // Veritabanından görevi bul
+                // Fetch task from database
                 const data = await DATABASE.api.getAllData();
                 const task = data.tasks.find(t => t.id === taskId);
                 
                 if (task) {
-                    // Kullanıcıdan görevi tamamladığını onaylamasını iste
-                    const confirmed = confirm(`"${task.title}" görevini tamamladınız mı?`);
+                    // Ask user to confirm task completion
+                    const confirmed = confirm(`Have you completed "${task.title}" task?`);
                     
                     if (confirmed) {
-                        // Görevi tamamla ve ödülü kaydet
+                        // Record task completion and earnings
                         await DATABASE.earnings.recordEarning(userId, 'tasks', task.bonkReward);
                         
-                        // Kullanıcı istatistiklerini güncelle
+                        // Update user statistics
                         const userData = await DATABASE.users.getUser(userId);
                         userData.completedTasks = userData.completedTasks || [];
                         userData.completedTasks.push({
@@ -628,72 +630,79 @@
                         });
                         await DATABASE.users.updateUser(userId, userData);
 
-                        showNotification(`Görev tamamlandı! ${task.bonkReward} BONK kazandınız.`, 'success');
+                        showNotification(`Task completed! Earned ${task.bonkReward} BONK.`, 'success');
                         updateAirdropProgress();
                     }
                 } else {
-                    showNotification('Görev bulunamadı.', 'error');
+                    showNotification('Task not found.', 'error');
                 }
             } catch (error) {
-                console.error('Görev tamamlama hatası:', error);
-                showNotification('Görev tamamlanırken bir hata oluştu.', 'error');
+                console.error('Task completion error:', error);
+                showNotification('An error occurred while completing the task.', 'error');
             }
         }
 
-        // Sayfa Yükleme İşlemleri
+        // Page Load Initialization
         window.onload = async function() {
-            // Airdrop süresini hesapla
-            calculateTimeLeft();
-            setInterval(calculateTimeLeft, 60000);
-
-            // Telegram kullanıcı bilgisi
-            const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-
             try {
-                // Kullanıcı bilgilerini yükle
-                const userData = await DATABASE.users.getUser(userId);
-                
-                // Kullanıcı adını ve BONK bakiyesini güncelle
-                document.getElementById('userNameDisplay').textContent = 
-                    userData?.username || 'Misafir Kullanıcı';
-                
-                document.getElementById('userBonkBalance').textContent = 
-                    (userData?.bonkBalance || 0).toLocaleString();
+                // Calculate airdrop duration
+                calculateTimeLeft();
+                setInterval(calculateTimeLeft, 60000);
 
-                // Referans linkini oluştur 
-                const refLink = generateRefLink(userId);
-                document.getElementById('refLink').querySelector('span').textContent = refLink;
+                // Telegram user information
+                const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
 
-                // İstatistikleri yükle
-                const stats = await DATABASE.stats.getGlobalStats();
-                if (stats) {
-                    document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
-                    document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
+                try {
+                    // Load user information
+                    const userData = await DATABASE.users.getUser(userId);
                     
-                    // Toplam ödül hesaplama (örnek)
-                    const totalRewards = stats.totalBonk;
-                    document.getElementById('totalRewards').textContent = totalRewards.toLocaleString();
-
-                    // Referans istatistikleri
-                    document.getElementById('totalReferrals').textContent = 
-                        stats.referralStats.totalReferrals.toLocaleString();
+                    // Update username and BONK balance
+                    document.getElementById('userNameDisplay').textContent = 
+                        userData?.username || 'Guest User';
                     
-                    // Referans BONK'u (örnek hesaplama)
-                    const referralBonk = stats.referralStats.totalReferrals * 1000;
-                    document.getElementById('referralBonk').textContent = referralBonk.toLocaleString();
+                    document.getElementById('userBonkBalance').textContent = 
+                        (userData?.bonkBalance || 0).toLocaleString();
+
+                    // Generate referral link
+                    const refLink = generateRefLink(userId);
+                    document.getElementById('refLink').querySelector('span').textContent = refLink;
+
+                    // Load statistics
+                    const stats = await DATABASE.stats.getGlobalStats();
+                    if (stats) {
+                        document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+                        document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
+                        
+                        // Total rewards calculation (example)
+                        const totalRewards = stats.totalBonk;
+                        document.getElementById('totalRewards').textContent = totalRewards.toLocaleString();
+
+                        // Referral statistics
+                        document.getElementById('totalReferrals').textContent = 
+                            stats.referralStats.totalReferrals.toLocaleString();
+                        
+                        // Referral BONK (example calculation)
+                        const referralBonk = stats.referralStats.totalReferrals * 1000;
+                        document.getElementById('referralBonk').textContent = referralBonk.toLocaleString();
+                    }
+
+                    // Load lists
+                    await Promise.all([
+                        listPtcAds(),
+                        listShortlinks(),
+                        listTasks()
+                    ]);
+
+                    // Update airdrop progress
+                    updateAirdropProgress();
+
+                } catch (error) {
+                    console.error('Page load error:', error);
+                    showNotification('An error occurred while loading the page.', 'error');
                 }
-
-                // Listeleri yükle
-                await listPtcAds();
-                await listShortlinks();
-                await listTasks();
-
-                // Airdrop progress'i güncelle
-                updateAirdropProgress();
-
-            } catch (error) {
-                console.error('Sayfa yükleme hatası:', error);
-                showNotification('Sayfa yüklenirken bir hata oluştu.', 'error');
+            } catch (finalError) {
+                console.error('Final initialization error:', finalError);
+                showNotification('Critical error during page initialization.', 'error');
             }
         };
     </script>
