@@ -3,264 +3,460 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BONK Coin Admin Paneli</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>BONK Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="database.js"></script>
     <style>
-        :root {
-            --bg-color: #F8FAFC;
-            --text-color: #1E293B; 
-            --primary-color: #6366F1;
-            --card-bg: #FFFFFF;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .modal {
+            background: rgba(0,0,0,0.5);
+            display: none;
         }
     </style>
 </head>
-<body>
-    <div class="min-h-screen flex">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r">
-            <div class="px-6 py-8">
-                <img src="https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-logo.png" alt="BONK Logo" class="h-10 mx-auto mb-4">
-                <nav>
-                    <ul>
-                        <li>
-                            <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700 hover:text-white">
-                                <span class="mr-2">📊</span>
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700 hover:text-white">
-                                <span class="mr-2">👥</span>
-                                <span>Kullanıcılar</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700 hover:text-white">
-                                <span class="mr-2">🎮</span>
-                                <span>Oyunlar</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700 hover:text-white">
-                                <span class="mr-2">🎁</span>
-                                <span>Kampanyalar</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-indigo-700 hover:text-white">
-                                <span class="mr-2">⚙️</span>
-                                <span>Ayarlar</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </aside>
+<body class="min-h-screen bg-slate-900 p-8">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-white text-center">BONK Admin Dashboard</h1>
 
-        <!-- Main Content -->
-        <main class="flex-1 px-10 py-8">
-          
-            <!-- Dashboard Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-semibold mb-4">BONK Admin Paneli</h1>
-                <p class="text-gray-600">Airdrop ve oyun istatistiklerini buradan yönetin</p>
+        <!-- Global Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Toplam İstatistikler</h2>
+                <div id="globalStats">
+                    <p>Toplam Kullanıcı: <span id="totalUsers">-</span></p>
+                    <p>Toplam BONK: <span id="totalBonk">-</span></p>
+                </div>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-green-400">Oyun İstatistikleri</h2>
+                <div id="gameStats">
+                    <p>Flappy Bird Toplam Oyun: <span id="flappyPlays">-</span></p>
+                    <p>Dino Runner Toplam Oyun: <span id="dinoPlays">-</span></p>
+                    <p>Clicker Toplam Tıklama: <span id="clickerClicks">-</span></p>
+                </div>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-purple-400">Referans İstatistikleri</h2>
+                <div id="referralStats">
+                    <p>Toplam Referans: <span id="totalReferrals">-</span></p>
+                    <h3 class="mt-4 mb-2 font-semibold">En İyi 3 Referansçı</h3>
+                    <ul id="topReferrers"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Shortlinks Section -->
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Shortlinks Yönetimi</h2>
+                <button onclick="openModal('shortlinkModal')" class="w-full bg-indigo-600 text-white py-2 rounded mb-4">
+                    Yeni Shortlink Ekle
+                </button>
+                <div id="shortlinksList" class="space-y-2">
+                    <!-- Dinamik shortlink listesi -->
+                </div>
             </div>
 
-            <!-- Stats Overview -->
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-lg p-6 shadow-md flex items-center">
-                    <div class="p-3 rounded-full bg-indigo-600 bg-opacity-75 text-white mr-4">
-                        <svg class="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="mb-2 text-sm font-medium text-gray-600">
-                            Toplam Kullanıcı
-                        </p>
-                        <p class="text-lg font-semibold text-gray-700" id="totalUsers">
-                            -
-                        </p>
-                    </div>
+            <!-- PTC Ads Section -->
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-green-400">PTC Reklam Yönetimi</h2>
+                <button onclick="openModal('ptcAdModal')" class="w-full bg-green-600 text-white py-2 rounded mb-4">
+                    Yeni PTC Reklam Ekle
+                </button>
+                <div id="ptcAdsList" class="space-y-2">
+                    <!-- Dinamik PTC reklam listesi -->
                 </div>
+            </div>
 
-                <div class="bg-white rounded-lg p-6 shadow-md flex items-center">
-                    <div class="p-3 rounded-full bg-green-600 bg-opacity-75 text-white mr-4">
-                        <svg class="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="mb-2 text-sm font-medium text-gray-600">
-                            Toplam BONK
-                        </p>
-                        <p class="text-lg font-semibold text-gray-700" id="totalBonk">
-                            -
-                        </p>
-                    </div>
+            <!-- Tasks Section -->
+            <div class="bg-slate-800 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-purple-400">Görev Yönetimi</h2>
+                <button onclick="openModal('taskModal')" class="w-full bg-purple-600 text-white py-2 rounded mb-4">
+                    Yeni Görev Ekle
+                </button>
+                <div id="tasksList" class="space-y-2">
+                    <!-- Dinamik görev listesi -->
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="bg-white rounded-lg p-6 shadow-md flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-600 bg-opacity-75 text-white mr-4">
-                        <svg class="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="mb-2 text-sm font-medium text-gray-600">
-                            Oyun Oynama
-                        </p>
-                        <p class="text-lg font-semibold text-gray-700" id="totalPlays">
-                            -
-                        </p>
-                    </div>
+    <!-- Shortlink Modal -->
+    <div id="shortlinkModal" class="fixed inset-0 z-50 modal items-center justify-center">
+        <div class="bg-slate-700 rounded-lg p-8 w-96">
+            <h3 class="text-xl font-semibold mb-4">Yeni Shortlink Ekle</h3>
+            <form id="shortlinkForm">
+                <input type="text" placeholder="Shortlink Başlığı" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <input type="url" placeholder="Shortlink URL" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <input type="number" placeholder="BONK Ödülü" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <div class="flex justify-between">
+                    <button type="button" onclick="closeModal('shortlinkModal')" 
+                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
+                    <button type="submit" 
+                        class="bg-indigo-600 text-white py-2 px-4 rounded">Ekle</button>
                 </div>
+            </form>
+        </div>
+    </div>
 
-                <div class="bg-white rounded-lg p-6 shadow-md flex items-center">
-                    <div class="p-3 rounded-full bg-blue-600 bg-opacity-75 text-white mr-4">
-                        <svg class="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="mb-2 text-sm font-medium text-gray-600">
-                            Toplam Referans  
-                        </p>
-                        <p class="text-lg font-semibold text-gray-700" id="totalReferrals">
-                            -
-                        </p>
-                    </div>
+    <!-- PTC Ad Modal -->
+    <div id="ptcAdModal" class="fixed inset-0 z-50 modal items-center justify-center">
+        <div class="bg-slate-700 rounded-lg p-8 w-96">
+            <h3 class="text-xl font-semibold mb-4">Yeni PTC Reklam Ekle</h3>
+            <form id="ptcAdForm">
+                <input type="text" placeholder="Reklam Başlığı" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <input type="url" placeholder="Reklam URL" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <input type="number" placeholder="Görüntüleme Başına BONK" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <div class="flex justify-between">
+                    <button type="button" onclick="closeModal('ptcAdModal')" 
+                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
+                    <button type="submit" 
+                        class="bg-green-600 text-white py-2 px-4 rounded">Ekle</button>
                 </div>
-            </section>
+            </form>
+        </div>
+    </div>
 
-            <!-- User Growth Chart -->
-            <section class="bg-white rounded-lg p-6 shadow-md mb-8">
-                <h2 class="text-xl font-semibold mb-4">Kullanıcı Artışı</h2>
-                <canvas id="userGrowthChart"></canvas>  
-            </section>
-
-            <!-- Game Stats -->
-            <section class="grid md:grid-cols-2 gap-6">
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Oyun İstatistikleri</h2>
-                    <table class="w-full table-auto">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-600 text-sm leading-normal">
-                                <th class="py-3 px-4 text-left">Oyun</th>
-                                <th class="py-3 px-4 text-left">Oynama</th>
-                                <th class="py-3 px-4 text-left">Kazanılan BONK</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm" id="gameStatsTable">
-                            <!-- Oyun istatistikleri buraya gelecek -->
-                        </tbody>
-                    </table>
+    <!-- Task Modal -->
+    <div id="taskModal" class="fixed inset-0 z-50 modal items-center justify-center">
+        <div class="bg-slate-700 rounded-lg p-8 w-96">
+            <h3 class="text-xl font-semibold mb-4">Yeni Görev Ekle</h3>
+            <form id="taskForm">
+                <input type="text" placeholder="Görev Başlığı" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <textarea placeholder="Görev Açıklaması" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded"></textarea>
+                <input type="number" placeholder="BONK Ödülü" required 
+                    class="w-full p-2 mb-4 bg-slate-600 rounded">
+                <select class="w-full p-2 mb-4 bg-slate-600 rounded">
+                    <option value="">Görev Türü Seçin</option>
+                    <option value="social">Sosyal Medya</option>
+                    <option value="website">Web Sitesi</option>
+                    <option value="video">Video</option>
+                    <option value="other">Diğer</option>
+                </select>
+                <div class="flex justify-between">
+                    <button type="button" onclick="closeModal('taskModal')" 
+                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
+                    <button type="submit" 
+                        class="bg-purple-600 text-white py-2 px-4 rounded">Ekle</button>
                 </div>
-
-                <!-- Top Referrers -->
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">En Çok Referans Yapanlar</h2>  
-                    <table class="w-full table-auto">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-600 text-sm leading-normal">
-                                <th class="py-3 px-4 text-left">Kullanıcı</th>
-                                <th class="py-3 px-4 text-left">Referans Sayısı</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm" id="topReferrersTable">
-                            <!-- En çok referans yapanlar buraya gelecek -->  
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-           
-        </main>
+            </form>
+        </div>
     </div>
 
     <script>
-        async function fetchStats() {
+        // Admin Ayarları (Güvenli bir şekilde saklanmalı)
+        const ADMIN_CONFIG = {
+            email: 'admin@bonkcoin.com',
+            password: 'bonk2024admin!'
+        };
+
+        // Modal Yönetimi
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Global İstatistikleri Güncelleme
+        async function updateGlobalStats() {
             try {
                 const stats = await DATABASE.stats.getGlobalStats();
-                console.log('Global stats:', stats);
+                if (stats) {
+                    // Toplam İstatistikler
+                    document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+                    document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
 
-                // Update UI with fetched stats
-                document.getElementById('totalUsers').textContent = stats.totalUsers;
-                document.getElementById('totalBonk').textContent = stats.totalBonk;
-                document.getElementById('totalPlays').textContent = Object.values(stats.gameStats)
-                    .reduce((sum, game) => sum + game.totalPlays, 0);
-                document.getElementById('totalReferrals').textContent = stats.referralStats.totalReferrals;
+                    // Oyun İstatistikleri
+                    document.getElementById('flappyPlays').textContent = stats.gameStats.flappyBird.totalPlays.toLocaleString();
+                    document.getElementById('dinoPlays').textContent = stats.gameStats.dinoRunner.totalPlays.toLocaleString();
+                    document.getElementById('clickerClicks').textContent = stats.gameStats.clicker.totalClicks.toLocaleString();
 
-                // Render game stats table
-                const gameStatsHtml = Object.entries(stats.gameStats)
-                    .map(([game, data]) => `
-                        <tr class="border-b border-gray-200">
-                            <td class="py-3 px-4">${game}</td>  
-                            <td class="py-3 px-4">${data.totalPlays}</td>
-                            <td class="py-3 px-4">${data.totalBonkEarned}</td>
-                        </tr>
-                    `)
-                    .join('');
-                document.getElementById('gameStatsTable').innerHTML = gameStatsHtml;
-                
-                // Render top referrers table
-                const topReferrersHtml = stats.referralStats.topReferrers
-                    .map(referrer => `
-                        <tr class="border-b border-gray-200">
-                            <td class="py-3 px-4">${referrer.userId}</td>
-                            <td class="py-3 px-4">${referrer.referralCount}</td>
-                        </tr>
-                    `)
-                    .join('');
-                document.getElementById('topReferrersTable').innerHTML = topReferrersHtml;
+                    // Referans İstatistikleri
+                    document.getElementById('totalReferrals').textContent = stats.referralStats.totalReferrals.toLocaleString();
 
-                // Render user growth chart
-                renderUserGrowthChart(stats.newUsersByDay);
-                
+                    // En İyi Referansçılar
+                    const topReferrersList = document.getElementById('topReferrers');
+                    topReferrersList.innerHTML = stats.referralStats.topReferrers
+                        .slice(0, 3)
+                        .map(referrer => `<li>Kullanıcı ${referrer.userId}: ${referrer.referralCount} referans</li>`)
+                        .join('');
+                }
             } catch (error) {
-                console.error('Error fetching stats:', error);
+                console.error('Global stats update error:', error);
             }
         }
 
-        function renderUserGrowthChart(growthData) {
-            const ctx = document.getElementById('userGrowthChart').getContext('2d');
+        // Leaderboard Yükleme
+        async function loadLeaderboards() {
+            try {
+                const boards = [
+                    { type: 'flappyBird', elementId: 'flappyLeaderboard' },
+                    { type: 'dinoRunner', elementId: 'dinoLeaderboard' },
+                    { type: 'clicker', elementId: 'clickerLeaderboard' },
+                    { type: 'bonkBalance', elementId: 'bonkLeaderboard' }
+                ];
 
-            // Group new users by day
-            const newUsersByDay = Object.entries(growthData).map(([date, count]) => ({
-                date,
-                count
-            }));
-
-            // Sort by date ascending
-            newUsersByDay.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            // Extract labels and data
-            const labels = newUsersByDay.map(entry => entry.date);  
-            const data = newUsersByDay.map(entry => entry.count);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Yeni Kullanıcılar',
-                        data: data,
-                        fill: false,  
-                        borderColor: 'rgb(99, 102, 241)',
-                        tension: 0.1
-                    }]
+                for (const board of boards) {
+                    const leaderboard = await DATABASE.stats.getLeaderboard(board.type);
+                    const element = document.getElementById(board.elementId);
+                    if (element && leaderboard) {
+                        element.innerHTML = leaderboard
+                            .slice(0, 5)
+                            .map((entry, index) => `
+                                <li class="flex justify-between">
+                                    <span>${index + 1}. Kullanıcı ${entry.userId}</span>
+                                    <span>${entry.score || entry.clicks || entry.balance || 0}</span>
+                                </li>
+                            `)
+                            .join('');
+                    }
                 }
-            });
+            } catch (error) {
+                console.error('Leaderboard load error:', error);
+            }
         }
 
-        // Fetch stats on page load
-        fetchStats();
+        // Veri Yönetimi Fonksiyonları
+        const dataManagement = {
+            async addShortlink(title, url, bonkReward) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (!data.shortlinks) data.shortlinks = [];
+
+                    data.shortlinks.push({
+                        id: Date.now(),
+                        title,
+                        url,
+                        bonkReward: parseInt(bonkReward)
+                    });
+
+                    await DATABASE.api.updateData(data);
+                    this.renderShortlinks(data.shortlinks);
+                } catch (error) {
+                    console.error('Shortlink ekleme hatası:', error);
+                }
+            },
+
+            async addPtcAd(title, url, bonkPerView) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (!data.ptcAds) data.ptcAds = [];
+
+                    data.ptcAds.push({
+                        id: Date.now(),
+                        title,
+                        url,
+                        bonkPerView: parseInt(bonkPerView)
+                    });
+
+                    await DATABASE.api.updateData(data);
+                    this.renderPtcAds(data.ptcAds);
+                } catch (error) {
+                    console.error('PTC reklam ekleme hatası:', error);
+                }
+            },
+
+            async addTask(title, description, bonkReward, type) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (!data.tasks) data.tasks = [];
+
+                    data.tasks.push({
+                        id: Date.now(),
+                        title,
+                        description,
+                        bonkReward: parseInt(bonkReward),
+                        type
+                    });
+
+                    await DATABASE.api.updateData(data);
+                    this.renderTasks(data.tasks);
+                } catch (error) {
+                    console.error('Görev ekleme hatası:', error);
+                }
+            },
+
+            async renderShortlinks(shortlinks = []) {
+                const list = document.getElementById('shortlinksList');
+                list.innerHTML = shortlinks.length ? 
+                    shortlinks.map(sl => `
+                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">${sl.title}</p>
+                                <p class="text-sm text-slate-400">${sl.bonkReward} BONK - ${sl.url}</p>
+                            </div>
+                            <button onclick="dataManagement.deleteShortlink(${sl.id})" 
+                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
+                                Sil
+                            </button>
+                        </div>
+                    `).join('') : 
+                    '<p class="text-slate-500 text-center">Henüz shortlink yok</p>';
+            },
+
+            async renderPtcAds(ptcAds = []) {
+                const list = document.getElementById('ptcAdsList');
+                list.innerHTML = ptcAds.length ? 
+                    ptcAds.map(ad => `
+                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">${ad.title}</p>
+                                <p class="text-sm text-slate-400">Görüntüleme Başına ${ad.bonkPerView} BONK - ${ad.url}</p>
+                            </div>
+                            <button onclick="dataManagement.deletePtcAd(${ad.id})" 
+                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
+                                Sil
+                            </button>
+                        </div>
+                    `).join('') : 
+                    '<p class="text-slate-500 text-center">Henüz PTC reklam yok</p>';
+            },
+
+            async renderTasks(tasks = []) {
+                const list = document.getElementById('tasksList');
+                list.innerHTML = tasks.length ? 
+                    tasks.map(task => `
+                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">${task.title}</p>
+                                <p class="text-sm text-slate-400">${task.bonkReward} BONK - ${task.type}</p>
+                                <p class="text-xs text-slate-500">${task.description}</p>
+                            </div>
+                            <button onclick="dataManagement.deleteTask(${task.id})" 
+                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
+                                Sil
+                            </button>
+                        </div>
+                    `).join('') : 
+                    '<p class="text-slate-500 text-center">Henüz görev yok</p>';
+            },
+
+            async deleteShortlink(id) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (data.shortlinks) {
+                        data.shortlinks = data.shortlinks.filter(sl => sl.id !== id);
+                        await DATABASE.api.updateData(data);
+                        this.renderShortlinks(data.shortlinks);
+                    }
+                } catch (error) {
+                    console.error('Shortlink silme hatası:', error);
+                }
+            },
+
+            async deletePtcAd(id) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (data.ptcAds) {
+                        data.ptcAds = data.ptcAds.filter(ad => ad.id !== id);
+                        await DATABASE.api.updateData(data);
+                        this.renderPtcAds(data.ptcAds);
+                    }
+                } catch (error) {
+                    console.error('PTC reklam silme hatası:', error);
+                }
+            },
+
+            async deleteTask(id) {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    if (data.tasks) {
+                        data.tasks = data.tasks.filter(task => task.id !== id);
+                        await DATABASE.api.updateData(data);
+                        this.renderTasks(data.tasks);
+                    }
+                } catch (error) {
+                    console.error('Görev silme hatası:', error);
+                }
+            },
+
+            async loadInitialData() {
+                try {
+                    const data = await DATABASE.api.getAllData();
+                    
+                    // İlk yüklemede varolan verileri render et
+                    this.renderShortlinks(data.shortlinks || []);
+                    this.renderPtcAds(data.ptcAds || []);
+                    this.renderTasks(data.tasks || []);
+                } catch (error) {
+                    console.error('Başlangıç verilerini yükleme hatası:', error);
+                }
+            }
+        };
+
+        // Form Gönderim İşleyicileri
+        document.getElementById('shortlinkForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = this.querySelector('input[type="text"]').value;
+            const url = this.querySelector('input[type="url"]').value;
+            const bonkReward = this.querySelector('input[type="number"]').value;
+
+            await dataManagement.addShortlink(title, url, bonkReward);
+            closeModal('shortlinkModal');
+            this.reset();
+        });
+
+        document.getElementById('ptcAdForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = this.querySelector('input[type="text"]').value;
+            const url = this.querySelector('input[type="url"]').value;
+            const bonkPerView = this.querySelector('input[type="number"]').value;
+
+            await dataManagement.addPtcAd(title, url, bonkPerView);
+            closeModal('ptcAdModal');
+            this.reset();
+        });
+
+        document.getElementById('taskForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = this.querySelector('input[type="text"]').value;
+            const description = this.querySelector('textarea').value;
+            const bonkReward = this.querySelector('input[type="number"]').value;
+            const type = this.querySelector('select').value;
+
+            await dataManagement.addTask(title, description, bonkReward, type);
+            closeModal('taskModal');
+            this.reset();
+        });
+
+        // Sayfa Yükleme İşlemleri
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Giriş kontrolü
+            const isLoggedIn = localStorage.getItem('adminAuth') === 'true';
+            if (!isLoggedIn) {
+                window.location.href = '/admin.html';
+                return;
+            }
+
+            // Verileri yükle
+            await dataManagement.loadInitialData();
+            
+            // İstatistikleri güncelle
+            await updateGlobalStats();
+            await loadLeaderboards();
+
+            // Periyodik olarak istatistikleri güncelle
+            setInterval(updateGlobalStats, 5 * 60 * 1000); // 5 dakikada bir
+        });
+
+        // Çıkış İşlemi
+        function logout() {
+            localStorage.removeItem('adminAuth');
+            window.location.href = '/admin.html';
+        }
     </script>
 </body>
 </html>
