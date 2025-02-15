@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DGB Goblin Faucet</title>
+    <style>
+        :root {
+            --goblin-green: #4caf50;
+            --goblin-dark: #1b5e20;
+            --background: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+        }
+
+        .navbar {
+            background: var(--goblin-dark);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: var(--goblin-green);
+            color: white;
+        }
+
+        .content-box {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: var(--goblin-green);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--goblin-dark);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .captcha-container {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .captcha-icons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .captcha-icon {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .captcha-icon:hover {
+            transform: scale(1.05);
+            border-color: var(--goblin-green);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .referral-box {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .referral-link {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            word-break: break-all;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+
+        .referral-list {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .referral-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .claim-counter {
+            font-size: 1.2rem;
+            color: var(--goblin-dark);
+            margin: 1rem 0;
+            text-align: center;
+            background: #e8f5e9;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            color: #dc3545;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #fff5f5;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-reward {
+            color: var(--goblin-green);
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .iframe-box {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .timer-bar {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .tabs {
+                flex-direction: column;
+            }
+            .tab {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>🧌 DGB Goblin Faucet</h1>
+        <div class="user-info">
+            <span id="userEmail"></span>
+            <button class="btn" onclick="logout()">Çıkış</button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('faucet')">Faucet</button>
+            <button class="tab" onclick="showTab('shortlinks')">Shortlinks</button>
+            <button class="tab" onclick="showTab('ptcads')">PTC Ads</button>
+            <button class="tab" onclick="showTab('referrals')">Referanslar</button>
+        </div>
+
+        <!-- Faucet Section -->
+        <div id="faucetTab" class="content-box">
+            <h2>DGB Faucet</h2>
+            <div id="claimCounter" class="claim-counter">Kalan Claim: 3</div>
+            <div id="warningBox" class="warning-box">
+                Devam etmek için shortlink çözmelisiniz!
+            </div>
+
+            <div class="captcha-container">
+                <h3>Güvenlik Doğrulaması</h3>
+                <div id="targetIcon" style="font-size: 2rem; margin: 1rem;"></div>
+                <div class="captcha-icons" id="captchaOptions"></div>
+            </div>
+
+            <button id="claimButton" class="btn" onclick="claim()">Claim DGB</button>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3>Toplam Kazanç</h3>
+                    <div id="totalEarned">0 DGB</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Son Ödeme</h3>
+                    <div id="lastPayout">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortlinks Section -->
+        <div id="shortlinksTab" class="content-box" style="display: none;">
+            <h2>Shortlinks</h2>
+            <p class="info-text">Her shortlink size 3 claim hakkı kazandırır.</p>
+            <div id="shortlinkList"></div>
+        </div>
+
+        <!-- PTC Ads Section -->
+        <div id="ptcadsTab" class="content-box" style="display: none;">
+            <h2>PTC Reklamlar</h2>
+            <p class="info-text">Reklamları izleyerek DGB kazanın!</p>
+            <div id="ptcList"></div>
+        </div>
+
+        <!-- Referrals Section -->
+        <div id="referralsTab" class="content-box" style="display: none;">
+            <h2>Referans Sistemi</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3>Referans Sayısı</h3>
+                    <div id="referralCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <h3>Referans Kazancı</h3>
+                    <div id="referralEarnings">0 DGB</div>
+                </div>
+            </div>
+
+            <div class="referral-box">
+                <h3>Referans Linkiniz</h3>
+                <div id="referralLink" class="referral-link"></div>
+                <button class="copy-btn" onclick="copyReferralLink()">Kopyala</button>
+                <p class="info-text">Her referans size kazançların %30'u kadar bonus kazandırır!</p>
+            </div>
+
+            <h3>Referanslarınız</h3>
+            <div id="referralList" class="referral-list"></div>
+        </div>
+    </div>
+
+    <!-- Iframe Container for Shortlinks and PTC -->
+    <div id="iframeContainer" class="iframe-container">
+        <div class="iframe-box">
+            <button class="close-btn" onclick="closeIframe()">&times;</button>
+            <div id="timerBar" class="timer-bar"></div>
+            <iframe id="contentFrame" style="width: 100%; height: calc(100% - 60px); border: none;"></iframe>
+        </div>
+    </div>
+
+    <script src="faucetpay.js"></script>
+    <script>
+        let currentUser = null;
+        let claimCount = 3;
+        let selectedIcon = null;
+        let activeTimer = null;
+
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            checkReferral();
+            initCaptcha();
+            updateUI();
+            loadAllData();
+        });
+
+        // Kullanıcı kontrolü
+        function checkAuth() {
+            const userEmail = localStorage.getItem('currentUser');
+            if (!userEmail) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = userEmail;
+            document.getElementById('userEmail').textContent = userEmail;
+            
+            claimCount = parseInt(localStorage.getItem(`claimCount_${userEmail}`) || '3');
+        }
+
+        // Referral kontrolü
+        function checkReferral() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            
+            if (refCode && !localStorage.getItem(`referrer_${currentUser}`)) {
+                const referralData = JSON.parse(localStorage.getItem('referralData') || '{}');
+                const referrer = Object.entries(referralData.referrals || {}).find(
+                    ([email, data]) => data.some(ref => ref.referralCode === refCode)
+                );
+                
+                if (referrer) {
+                    localStorage.setItem(`referrer_${currentUser}`, referrer[0]);
+                    faucetManager.referralManager.addReferral(referrer[0], currentUser);
+                }
+            }
+        }
+
+        // Tab kontrolü
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.content-box').forEach(box => {
+                box.style.display = 'none';
+            });
+            document.getElementById(`${tabName}Tab`).style.display = 'block';
+
+            if (tabName === 'referrals') {
+                loadReferralData();
+            }
+        }
+
+        // Captcha sistemi
+        function initCaptcha() {
+            const icons = ['🌟', '🎮', '🎨', '🎯', '🎲', '🎸', '🎮', '🎨'];
+            const targetIcon = icons[Math.floor(Math.random() * 4)];
+            document.getElementById('targetIcon').textContent = targetIcon;
+            
+            const optionsContainer = document.getElementById('captchaOptions');
+            optionsContainer.innerHTML = '';
+            
+            const shuffledIcons = [...icons].sort(() => Math.random() - 0.5);
+            shuffledIcons.forEach(icon => {
+                const iconElement = document.createElement('div');
+                iconElement.className = 'captcha-icon';
+                iconElement.textContent = icon;
+                iconElement.onclick = () => validateCaptcha(icon, targetIcon);
+                optionsContainer.appendChild(iconElement);
+            });
+        }
+
+        function validateCaptcha(selected, target) {
+            selectedIcon = (selected === target);
+            if (selectedIcon) {
+                document.getElementById('claimButton').disabled = false;
+            } else {
+                alert('Yanlış ikon! Tekrar deneyin.');
+                initCaptcha();
+                document.getElementById('claimButton').disabled = true;
+            }
+        }
+
+        // Veri yükleme
+        function loadAllData() {
+            loadShortlinks();
+            loadPTCAds();
+            loadReferralData();
+            updateStats();
+        }
+
+        // Shortlink işlemleri
+        function loadShortlinks() {
+            const shortlinks = JSON.parse(localStorage.getItem('shortlinks') || '[]');
+            const shortlinkList = document.getElementById('shortlinkList');
+            
+            if (shortlinks.length === 0) {
+                shortlinkList.innerHTML = '<p class="info-text">Şu anda aktif shortlink bulunmuyor.</p>';
+                return;
+            }
+
+            shortlinkList.innerHTML = shortlinks
+                .filter(link => link.active)
+                .map(link => `
+                    <div class="item-card">
+                        <div class="item-info">
+                            <div class="item-title">${link.title}</div>
+                            <div class="item-reward">3 Claim Hakkı</div>
+                        </div>
+                        <button class="btn" onclick="openShortlink('${link.id}')">Çöz</button>
+                    </div>
+                `).join('');
+        }
+
+        // PTC işlemleri
+        function loadPTCAds() {
+            const ptcAds = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const ptcList = document.getElementById('ptcList');
+            
+            if (ptcAds.length === 0) {
+                ptcList.innerHTML = '<p class="info-text">Şu anda aktif PTC reklam bulunmuyor.</p>';
+                return;
+            }
+
+            ptcList.innerHTML = ptcAds
+                .filter(ad => ad.active)
+                .map(ad => `
+                    <div class="item-card">
+                        <div class="item-info">
+                            <div class="item-title">${ad.title}</div>
+                            <div class="item-reward">${ad.reward} DGB</div>
+                            <div class="info-text">${ad.duration} saniye görüntüleme</div>
+                        </div>
+                        <button class="btn" onclick="openPTCAd('${ad.id}')">İzle</button>
+                    </div>
+                `).join('');
+        }
+
+        // Referans işlemleri
+        function loadReferralData() {
+            const stats = faucetManager.referralManager.getReferralStats(currentUser);
+            
+            document.getElementById('referralCount').textContent = stats.referralCount;
+            document.getElementById('referralEarnings').textContent = 
+                `${stats.totalEarnings.toFixed(8)} DGB`;
+
+            const referralCode = localStorage.getItem(`referralCode_${currentUser}`) || 
+                faucetManager.referralManager.generateReferralCode();
+            localStorage.setItem(`referralCode_${currentUser}`, referralCode);
+
+            const referralLink = `${window.location.origin}?ref=${referralCode}`;
+            document.getElementById('referralLink').textContent = referralLink;
+
+            const referralList = document.getElementById('referralList');
+            if (stats.referrals.length === 0) {
+                referralList.innerHTML = '<p class="info-text">Henüz referansınız bulunmuyor.</p>';
+                return;
+            }
+
+            referralList.innerHTML = stats.referrals.map(ref => `
+                <div class="referral-item">
+                    <div>
+                        <div>${ref.user}</div>
+                        <div class="info-text">Katılım: ${new Date(ref.joinDate).toLocaleDateString()}</div>
+                    </div>
+                    <div class="info-text">
+                        Kazandırdığı: ${(ref.earnings || 0).toFixed(8)} DGB
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Iframe işlemleri
+        function openShortlink(linkId) {
+            const shortlinks = JSON.parse(localStorage.getItem('shortlinks') || '[]');
+            const link = shortlinks.find(l => l.id === linkId);
+            if (!link) return;
+
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('contentFrame');
+            frame.src = link.url;
+            container.style.display = 'flex';
+            document.getElementById('timerBar').textContent = 'Shortlinki tamamladıktan sonra doğrulayın';
+
+            setTimeout(() => {
+                if (confirm('Shortlinki tamamladınız mı?')) {
+                    completeShortlink(linkId);
+                }
+                closeIframe();
+            }, 10000);
+        }
+
+        function openPTCAd(adId) {
+            const ptcAds = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const ad = ptcAds.find(a => a.id === adId);
+            if (!ad) return;
+
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('contentFrame');
+            const timerBar = document.getElementById('timerBar');
+            let timeLeft = ad.duration;
+
+            frame.src = ad.url;
+            container.style.display = 'flex';
+            
+            activeTimer = setInterval(() => {
+                timeLeft--;
+                timerBar.textContent = `${timeLeft} saniye kaldı`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(activeTimer);
+                    timerBar.textContent = 'Tamamlandı! Ödülünüzü alabilirsiniz.';
+                    completePTCAd(adId);
+                }
+            }, 1000);
+        }
+
+        function closeIframe() {
+            const container = document.getElementById('iframeContainer');
+            const frame = document.getElementById('contentFrame');
+            
+            if (activeTimer) {
+                clearInterval(activeTimer);
+                activeTimer = null;
+            }
+            
+            container.style.display = 'none';
+            frame.src = '';
+        }
+
+        // Claim işlemleri
+        async function claim() {
+            if (claimCount <= 0) {
+                document.getElementById('warningBox').style.display = 'block';
+                return;
+            }
+
+            if (!selectedIcon) {
+                alert('Lütfen önce güvenlik doğrulamasını tamamlayın!');
+                return;
+            }
+
+            const claimButton = document.getElementById('claimButton');
+            claimButton.disabled = true;
+
+            try {
+                const referrer = localStorage.getItem(`referrer_${currentUser}`);
+                const result = await faucetManager.processClaim(currentUser, referrer);
+
+                if (result.success) {
+                    claimCount--;
+                    localStorage.setItem(`claimCount_${currentUser}`, claimCount);
+                    
+                    updateUI();
+                    updateStats(result.amount);
+                    
+                    alert(`Ödeme başarılı! ${result.amount} DGB gönderildi.`);
+                    initCaptcha();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('Bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+            } finally {
+                claimButton.disabled = false;
+                selectedIcon = null;
+            }
+        }
+
+        // Tamamlama işlemleri
+        async function completeShortlink(linkId) {
+            try {
+                // Shortlink tamamlandı olarak işaretle
+                const shortlinks = JSON.parse(localStorage.getItem('shortlinks') || '[]');
+                const linkIndex = shortlinks.findIndex(l => l.id === linkId);
+                
+                if (linkIndex !== -1) {
+                    shortlinks[linkIndex].completed = true;
+                    localStorage.setItem('shortlinks', JSON.stringify(shortlinks));
+
+                    // Claim hakkı ver
+                    claimCount = 3;
+                    localStorage.setItem(`claimCount_${currentUser}`, claimCount);
+
+                    updateUI();
+                    loadShortlinks();
+                    alert('Tebrikler! 3 claim hakkı kazandınız!');
+                }
+            } catch (error) {
+                alert('Bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+            }
+        }
+
+        async function completePTCAd(adId) {
+            try {
+                const ptcAds = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+                const ad = ptcAds.find(a => a.id === adId);
+                
+                if (ad) {
+                    const result = await faucetManager.processClaim(currentUser, null, ad.reward);
+                    
+                    if (result.success) {
+                        // Görüntülenme sayısını artır
+                        ad.views = (ad.views || 0) + 1;
+                        localStorage.setItem('ptcAds', JSON.stringify(ptcAds));
+
+                        updateStats(ad.reward);
+                        loadPTCAds();
+                        alert(`Tebrikler! ${ad.reward} DGB kazandınız!`);
+                    } else {
+                        alert(result.message);
+                    }
+                }
+            } catch (error) {
+                alert('Bir hata oluştu. Lütfen daha sonra tekrar deneyin.');
+            }
+            closeIframe();
+        }
+
+        // Yardımcı fonksiyonlar
+        function copyReferralLink() {
+            const link = document.getElementById('referralLink').textContent;
+            navigator.clipboard.writeText(link)
+                .then(() => alert('Referans linki kopyalandı!'))
+                .catch(() => alert('Kopyalama başarısız oldu. Lütfen manuel olarak kopyalayın.'));
+        }
+
+        function updateStats(amount = 0) {
+            if (amount > 0) {
+                const totalEarned = parseFloat(localStorage.getItem(`totalEarned_${currentUser}`) || '0');
+                const newTotal = totalEarned + amount;
+                
+                localStorage.setItem(`totalEarned_${currentUser}`, newTotal);
+                localStorage.setItem(`lastPayout_${currentUser}`, amount);
+
+                document.getElementById('totalEarned').textContent = `${newTotal.toFixed(8)} DGB`;
+                document.getElementById('lastPayout').textContent = `${amount.toFixed(8)} DGB`;
+            } else {
+                const totalEarned = parseFloat(localStorage.getItem(`totalEarned_${currentUser}`) || '0');
+                const lastPayout = parseFloat(localStorage.getItem(`lastPayout_${currentUser}`) || '0');
+
+                document.getElementById('totalEarned').textContent = `${totalEarned.toFixed(8)} DGB`;
+                document.getElementById('lastPayout').textContent = 
+                    lastPayout > 0 ? `${lastPayout.toFixed(8)} DGB` : '-';
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('claimCounter').textContent = `Kalan Claim: ${claimCount}`;
+            document.getElementById('warningBox').style.display = 
+                claimCount <= 0 ? 'block' : 'none';
+            document.getElementById('claimButton').disabled = !selectedIcon;
+            updateStats();
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
