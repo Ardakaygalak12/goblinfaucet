@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BONK Admin Dashboard</title>
+    <title>BONK Coin Admin Yönetim Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="database.js"></script>
     <style>
         body {
@@ -19,39 +20,71 @@
 </head>
 <body class="min-h-screen bg-slate-900 p-8">
     <div class="container mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-white text-center">BONK Admin Dashboard</h1>
+        <h1 class="text-3xl font-bold mb-8 text-white text-center">BONK Coin Admin Yönetim Paneli</h1>
 
-        <!-- Global Statistics -->
+        <!-- Kullanıcı Yönetimi Bölümü -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Toplam İstatistikler</h2>
-                <div id="globalStats">
-                    <p>Toplam Kullanıcı: <span id="totalUsers">-</span></p>
-                    <p>Toplam BONK: <span id="totalBonk">-</span></p>
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Kullanıcı Yönetimi</h2>
+                <div class="space-y-4">
+                    <button onclick="openModal('userFilterModal')" class="w-full bg-indigo-600 text-white py-2 rounded">
+                        Kullanıcı Filtrele
+                    </button>
+                    <button onclick="openModal('userDetailsModal')" class="w-full bg-green-600 text-white py-2 rounded">
+                        Kullanıcı Detayları
+                    </button>
                 </div>
             </div>
+
+            <!-- Günlük Limitler Bölümü -->
             <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-green-400">Oyun İstatistikleri</h2>
-                <div id="gameStats">
-                    <p>Flappy Bird Toplam Oyun: <span id="flappyPlays">-</span></p>
-                    <p>Dino Runner Toplam Oyun: <span id="dinoPlays">-</span></p>
-                    <p>Clicker Toplam Tıklama: <span id="clickerClicks">-</span></p>
+                <h2 class="text-2xl font-semibold mb-4 text-green-400">Günlük Limitler</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span>Günlük Shortlink Çözme Limiti:</span>
+                        <input type="number" id="dailyShortlinkLimit" value="10" 
+                            class="w-20 p-1 bg-slate-700 rounded text-right">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Günlük PTC Ad İzleme Limiti:</span>
+                        <input type="number" id="dailyPtcAdLimit" value="15" 
+                            class="w-20 p-1 bg-slate-700 rounded text-right">
+                    </div>
+                    <button onclick="saveDailyLimits()" class="w-full bg-purple-600 text-white py-2 rounded mt-2">
+                        Limitleri Kaydet
+                    </button>
                 </div>
             </div>
+
+            <!-- Sistem Ayarları -->
             <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-purple-400">Referans İstatistikleri</h2>
-                <div id="referralStats">
-                    <p>Toplam Referans: <span id="totalReferrals">-</span></p>
-                    <h3 class="mt-4 mb-2 font-semibold">En İyi 3 Referansçı</h3>
-                    <ul id="topReferrers"></ul>
+                <h2 class="text-2xl font-semibold mb-4 text-red-400">Sistem Ayarları</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span>Airdrop Durumu:</span>
+                        <select id="airdropStatus" class="bg-slate-700 p-1 rounded">
+                            <option value="active">Aktif</option>
+                            <option value="paused">Duraklatılmış</option>
+                            <option value="ended">Sonlandırılmış</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Minimum Çekim Tutarı:</span>
+                        <input type="number" id="minWithdrawAmount" value="1000" 
+                            class="w-20 p-1 bg-slate-700 rounded text-right">
+                    </div>
+                    <button onclick="saveSystemSettings()" class="w-full bg-red-600 text-white py-2 rounded mt-2">
+                        Ayarları Kaydet
+                    </button>
                 </div>
             </div>
         </div>
 
+        <!-- İçerik Yönetimi -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Shortlinks Section -->
+            <!-- Shortlink Yönetimi -->
             <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Shortlinks Yönetimi</h2>
+                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Shortlink Yönetimi</h2>
                 <button onclick="openModal('shortlinkModal')" class="w-full bg-indigo-600 text-white py-2 rounded mb-4">
                     Yeni Shortlink Ekle
                 </button>
@@ -60,7 +93,7 @@
                 </div>
             </div>
 
-            <!-- PTC Ads Section -->
+            <!-- PTC Reklam Yönetimi -->
             <div class="bg-slate-800 rounded-lg p-6">
                 <h2 class="text-2xl font-semibold mb-4 text-green-400">PTC Reklam Yönetimi</h2>
                 <button onclick="openModal('ptcAdModal')" class="w-full bg-green-600 text-white py-2 rounded mb-4">
@@ -71,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- Tasks Section -->
+            <!-- Görev Yönetimi -->
             <div class="bg-slate-800 rounded-lg p-6">
                 <h2 class="text-2xl font-semibold mb-4 text-purple-400">Görev Yönetimi</h2>
                 <button onclick="openModal('taskModal')" class="w-full bg-purple-600 text-white py-2 rounded mb-4">
@@ -79,6 +112,19 @@
                 </button>
                 <div id="tasksList" class="space-y-2">
                     <!-- Dinamik görev listesi -->
+                </div>
+            </div>
+        </div>
+
+        <!-- İstatistik Grafikleri -->
+        <div class="mt-8 bg-slate-800 rounded-lg p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-400">Platform İstatistikleri</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+                <div>
+                    <canvas id="earningsChart"></canvas>
                 </div>
             </div>
         </div>
@@ -155,10 +201,14 @@
     </div>
 
     <script>
-        // Admin Ayarları (Güvenli bir şekilde saklanmalı)
+        // Admin Yönetim Fonksiyonları
         const ADMIN_CONFIG = {
-            email: 'admin@bonkcoin.com',
-            password: 'bonk2024admin!'
+            dailyShortlinkLimit: 10,
+            dailyPtcAdLimit: 15,
+            systemSettings: {
+                airdropStatus: 'active',
+                minWithdrawAmount: 1000
+            }
         };
 
         // Modal Yönetimi
@@ -170,232 +220,207 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Global İstatistikleri Güncelleme
-        async function updateGlobalStats() {
+        // Günlük Limit Kaydetme
+        function saveDailyLimits() {
+            const shortlinkLimit = document.getElementById('dailyShortlinkLimit').value;
+            const ptcAdLimit = document.getElementById('dailyPtcAdLimit').value;
+
+            ADMIN_CONFIG.dailyShortlinkLimit = parseInt(shortlinkLimit);
+            ADMIN_CONFIG.dailyPtcAdLimit = parseInt(ptcAdLimit);
+
+            // Veritabanına kaydetme
+            DATABASE.config.dailyLimits = {
+                shortlink: ADMIN_CONFIG.dailyShortlinkLimit,
+                ptcAd: ADMIN_CONFIG.dailyPtcAdLimit
+            };
+
+            alert('Günlük limitler başarıyla güncellendi!');
+        }
+
+        // Sistem Ayarları Kaydetme
+        function saveSystemSettings() {
+            const airdropStatus = document.getElementById('airdropStatus').value;
+            const minWithdrawAmount = document.getElementById('minWithdrawAmount').value;
+
+            ADMIN_CONFIG.systemSettings.airdropStatus = airdropStatus;
+            ADMIN_CONFIG.systemSettings.minWithdrawAmount = parseInt(minWithdrawAmount);
+
+            // Veritabanına kaydetme
+            DATABASE.config.systemSettings = ADMIN_CONFIG.systemSettings;
+
+            alert('Sistem ayarları başarıyla güncellendi!');
+        }
+
+        // Shortlink Ekleme
+        async function addShortlink(title, url, bonkReward) {
             try {
-                const stats = await DATABASE.stats.getGlobalStats();
-                if (stats) {
-                    // Toplam İstatistikler
-                    document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
-                    document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
+                const data = await DATABASE.api.getAllData();
+                if (!data.shortlinks) data.shortlinks = [];
 
-                    // Oyun İstatistikleri
-                    document.getElementById('flappyPlays').textContent = stats.gameStats.flappyBird.totalPlays.toLocaleString();
-                    document.getElementById('dinoPlays').textContent = stats.gameStats.dinoRunner.totalPlays.toLocaleString();
-                    document.getElementById('clickerClicks').textContent = stats.gameStats.clicker.totalClicks.toLocaleString();
+                const newShortlink = {
+                    id: Date.now(),
+                    title,
+                    url,
+                    bonkReward: parseInt(bonkReward),
+                    createdAt: new Date().toISOString(),
+                    status: 'active',
+                    dailyLimit: ADMIN_CONFIG.dailyShortlinkLimit
+                };
 
-                    // Referans İstatistikleri
-                    document.getElementById('totalReferrals').textContent = stats.referralStats.totalReferrals.toLocaleString();
-
-                    // En İyi Referansçılar
-                    const topReferrersList = document.getElementById('topReferrers');
-                    topReferrersList.innerHTML = stats.referralStats.topReferrers
-                        .slice(0, 3)
-                        .map(referrer => `<li>Kullanıcı ${referrer.userId}: ${referrer.referralCount} referans</li>`)
-                        .join('');
-                }
+                data.shortlinks.push(newShortlink);
+                await DATABASE.api.updateData(data);
+                
+                // Index sayfasına dinamik olarak ekle
+                renderShortlinksOnIndex(data.shortlinks);
+                
+                alert('Shortlink başarıyla eklendi!');
             } catch (error) {
-                console.error('Global stats update error:', error);
+                console.error('Shortlink ekleme hatası:', error);
+                alert('Shortlink eklenirken bir hata oluştu.');
             }
         }
 
-        // Leaderboard Yükleme
-        async function loadLeaderboards() {
+        // PTC Ad Ekleme
+        async function addPtcAd(title, url, bonkPerView) {
             try {
-                const boards = [
-                    { type: 'flappyBird', elementId: 'flappyLeaderboard' },
-                    { type: 'dinoRunner', elementId: 'dinoLeaderboard' },
-                    { type: 'clicker', elementId: 'clickerLeaderboard' },
-                    { type: 'bonkBalance', elementId: 'bonkLeaderboard' }
-                ];
+                const data = await DATABASE.api.getAllData();
+                if (!data.ptcAds) data.ptcAds = [];
 
-                for (const board of boards) {
-                    const leaderboard = await DATABASE.stats.getLeaderboard(board.type);
-                    const element = document.getElementById(board.elementId);
-                    if (element && leaderboard) {
-                        element.innerHTML = leaderboard
-                            .slice(0, 5)
-                            .map((entry, index) => `
-                                <li class="flex justify-between">
-                                    <span>${index + 1}. Kullanıcı ${entry.userId}</span>
-                                    <span>${entry.score || entry.clicks || entry.balance || 0}</span>
-                                </li>
-                            `)
-                            .join('');
-                    }
-                }
+                const newPtcAd = {
+                    id: Date.now(),
+                    title,
+                    url,
+                    bonkPerView: parseInt(bonkPerView),
+                    createdAt: new Date().toISOString(),
+                    status: 'active',
+                    dailyLimit: ADMIN_CONFIG.dailyPtcAdLimit,
+                    viewDuration: 15, // Default 15 saniye görüntüleme süresi
+                    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 gün sonra sona erecek
+                };
+
+                data.ptcAds.push(newPtcAd);
+                await DATABASE.api.updateData(data);
+                
+                // Index sayfasına dinamik olarak ekle
+                renderPtcAdsOnIndex(data.ptcAds);
+                
+                alert('PTC Reklam başarıyla eklendi!');
             } catch (error) {
-                console.error('Leaderboard load error:', error);
+                console.error('PTC reklam ekleme hatası:', error);
+                alert('PTC reklam eklenirken bir hata oluştu.');
             }
         }
 
-        // Veri Yönetimi Fonksiyonları
-        const dataManagement = {
-            async addShortlink(title, url, bonkReward) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (!data.shortlinks) data.shortlinks = [];
+        // Görev Ekleme
+        async function addTask(title, description, bonkReward, type) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                if (!data.tasks) data.tasks = [];
 
-                    data.shortlinks.push({
-                        id: Date.now(),
-                        title,
-                        url,
-                        bonkReward: parseInt(bonkReward)
-                    });
+                const newTask = {
+                    id: Date.now(),
+                    title,
+                    description,
+                    bonkReward: parseInt(bonkReward),
+                    type,
+                    createdAt: new Date().toISOString(),
+                    status: 'active',
+                    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 gün sonra sona erecek
+                    completionLimit: 100 // Toplam tamamlanabilecek görev sayısı
+                };
 
-                    await DATABASE.api.updateData(data);
-                    this.renderShortlinks(data.shortlinks);
-                } catch (error) {
-                    console.error('Shortlink ekleme hatası:', error);
-                }
-            },
-
-            async addPtcAd(title, url, bonkPerView) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (!data.ptcAds) data.ptcAds = [];
-
-                    data.ptcAds.push({
-                        id: Date.now(),
-                        title,
-                        url,
-                        bonkPerView: parseInt(bonkPerView)
-                    });
-
-                    await DATABASE.api.updateData(data);
-                    this.renderPtcAds(data.ptcAds);
-                } catch (error) {
-                    console.error('PTC reklam ekleme hatası:', error);
-                }
-            },
-
-            async addTask(title, description, bonkReward, type) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (!data.tasks) data.tasks = [];
-
-                    data.tasks.push({
-                        id: Date.now(),
-                        title,
-                        description,
-                        bonkReward: parseInt(bonkReward),
-                        type
-                    });
-
-                    await DATABASE.api.updateData(data);
-                    this.renderTasks(data.tasks);
-                } catch (error) {
-                    console.error('Görev ekleme hatası:', error);
-                }
-            },
-
-            async renderShortlinks(shortlinks = []) {
-                const list = document.getElementById('shortlinksList');
-                list.innerHTML = shortlinks.length ? 
-                    shortlinks.map(sl => `
-                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold">${sl.title}</p>
-                                <p class="text-sm text-slate-400">${sl.bonkReward} BONK - ${sl.url}</p>
-                            </div>
-                            <button onclick="dataManagement.deleteShortlink(${sl.id})" 
-                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                Sil
-                            </button>
-                        </div>
-                    `).join('') : 
-                    '<p class="text-slate-500 text-center">Henüz shortlink yok</p>';
-            },
-
-            async renderPtcAds(ptcAds = []) {
-                const list = document.getElementById('ptcAdsList');
-                list.innerHTML = ptcAds.length ? 
-                    ptcAds.map(ad => `
-                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold">${ad.title}</p>
-                                <p class="text-sm text-slate-400">Görüntüleme Başına ${ad.bonkPerView} BONK - ${ad.url}</p>
-                            </div>
-                            <button onclick="dataManagement.deletePtcAd(${ad.id})" 
-                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                Sil
-                            </button>
-                        </div>
-                    `).join('') : 
-                    '<p class="text-slate-500 text-center">Henüz PTC reklam yok</p>';
-            },
-
-            async renderTasks(tasks = []) {
-                const list = document.getElementById('tasksList');
-                list.innerHTML = tasks.length ? 
-                    tasks.map(task => `
-                        <div class="bg-slate-700 p-3 rounded flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold">${task.title}</p>
-                                <p class="text-sm text-slate-400">${task.bonkReward} BONK - ${task.type}</p>
-                                <p class="text-xs text-slate-500">${task.description}</p>
-                            </div>
-                            <button onclick="dataManagement.deleteTask(${task.id})" 
-                                class="bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                Sil
-                            </button>
-                        </div>
-                    `).join('') : 
-                    '<p class="text-slate-500 text-center">Henüz görev yok</p>';
-            },
-
-            async deleteShortlink(id) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (data.shortlinks) {
-                        data.shortlinks = data.shortlinks.filter(sl => sl.id !== id);
-                        await DATABASE.api.updateData(data);
-                        this.renderShortlinks(data.shortlinks);
-                    }
-                } catch (error) {
-                    console.error('Shortlink silme hatası:', error);
-                }
-            },
-
-            async deletePtcAd(id) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (data.ptcAds) {
-                        data.ptcAds = data.ptcAds.filter(ad => ad.id !== id);
-                        await DATABASE.api.updateData(data);
-                        this.renderPtcAds(data.ptcAds);
-                    }
-                } catch (error) {
-                    console.error('PTC reklam silme hatası:', error);
-                }
-            },
-
-            async deleteTask(id) {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    if (data.tasks) {
-                        data.tasks = data.tasks.filter(task => task.id !== id);
-                        await DATABASE.api.updateData(data);
-                        this.renderTasks(data.tasks);
-                    }
-                } catch (error) {
-                    console.error('Görev silme hatası:', error);
-                }
-            },
-
-            async loadInitialData() {
-                try {
-                    const data = await DATABASE.api.getAllData();
-                    
-                    // İlk yüklemede varolan verileri render et
-                    this.renderShortlinks(data.shortlinks || []);
-                    this.renderPtcAds(data.ptcAds || []);
-                    this.renderTasks(data.tasks || []);
-                } catch (error) {
-                    console.error('Başlangıç verilerini yükleme hatası:', error);
-                }
+                data.tasks.push(newTask);
+                await DATABASE.api.updateData(data);
+                
+                // Index sayfasına dinamik olarak ekle
+                renderTasksOnIndex(data.tasks);
+                
+                alert('Görev başarıyla eklendi!');
+            } catch (error) {
+                console.error('Görev ekleme hatası:', error);
+                alert('Görev eklenirken bir hata oluştu.');
             }
-        };
+        }
+
+        // İçerik Render Fonksiyonları
+        function renderShortlinksOnIndex(shortlinks) {
+            const shortlinksContainer = document.getElementById('shortlinksContainer');
+            if (!shortlinksContainer) return;
+
+            if (shortlinks && shortlinks.length > 0) {
+                shortlinksContainer.innerHTML = shortlinks
+                    .filter(sl => sl.status === 'active') // Sadece aktif shortlinkler
+                    .map(link => `
+                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
+                            <h4 class="font-semibold text-gray-800 mb-2">${link.title}</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-green-600 font-medium">
+                                    Çözme: ${link.bonkReward} BONK
+                                </span>
+                                <button onclick="openShortlink('${link.url}')" 
+                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
+                                    Çöz
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+            } else {
+                shortlinksContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz shortlink yok.</p>';
+            }
+        }
+
+        function renderPtcAdsOnIndex(ptcAds) {
+            const ptcAdsContainer = document.getElementById('ptcAdsContainer');
+            if (!ptcAdsContainer) return;
+
+            if (ptcAds && ptcAds.length > 0) {
+                ptcAdsContainer.innerHTML = ptcAds
+                    .filter(ad => ad.status === 'active' && new Date(ad.expirationDate) > new Date()) // Aktif ve süresi dolmamış reklamlar
+                    .map(ad => `
+                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
+                            <h4 class="font-semibold text-gray-800 mb-2">${ad.title}</h4>
+                            <div class="flex justify-between items-center">
+                                <span class="text-green-600 font-medium">
+                                    Görüntüleme: ${ad.bonkPerView} BONK
+                                </span>
+                                <button onclick="watchPtcAd('${ad.url}')"
+                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
+                                    İzle
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+            } else {
+                ptcAdsContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz PTC reklam yok.</p>';
+            }
+        }
+
+        function renderTasksOnIndex(tasks) {
+            const tasksContainer = document.getElementById('tasksList');
+            if (!tasksContainer) return;
+
+            if (tasks && tasks.length > 0) {
+                tasksContainer.innerHTML = tasks
+                    .filter(task => task.status === 'active' && new Date(task.expirationDate) > new Date()) // Aktif ve süresi dolmamış görevler
+                    .map(task => `
+                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
+                            <h4 class="font-semibold text-gray-800 mb-2">${task.title}</h4>
+                            <p class="text-gray-600 text-sm mb-2">${task.description}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-green-600 font-medium">
+                                    ${task.bonkReward} BONK - ${task.type}
+                                </span>
+                                <button onclick="completeTask('${task.id}')" 
+                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
+                                    Tamamla
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+            } else {
+                tasksContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz görev yok.</p>';
+            }
+        }
 
         // Form Gönderim İşleyicileri
         document.getElementById('shortlinkForm').addEventListener('submit', async function(e) {
@@ -404,7 +429,7 @@
             const url = this.querySelector('input[type="url"]').value;
             const bonkReward = this.querySelector('input[type="number"]').value;
 
-            await dataManagement.addShortlink(title, url, bonkReward);
+            await addShortlink(title, url, bonkReward);
             closeModal('shortlinkModal');
             this.reset();
         });
@@ -415,7 +440,7 @@
             const url = this.querySelector('input[type="url"]').value;
             const bonkPerView = this.querySelector('input[type="number"]').value;
 
-            await dataManagement.addPtcAd(title, url, bonkPerView);
+            await addPtcAd(title, url, bonkPerView);
             closeModal('ptcAdModal');
             this.reset();
         });
@@ -427,10 +452,77 @@
             const bonkReward = this.querySelector('input[type="number"]').value;
             const type = this.querySelector('select').value;
 
-            await dataManagement.addTask(title, description, bonkReward, type);
+            await addTask(title, description, bonkReward, type);
             closeModal('taskModal');
             this.reset();
         });
+
+        // İstatistik Grafikleri Oluşturma
+        async function createUserGrowthChart() {
+            try {
+                const stats = await DATABASE.stats.getGlobalStats();
+                const ctx = document.getElementById('userGrowthChart').getContext('2d');
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
+                        datasets: [{
+                            label: 'Kullanıcı Sayısı',
+                            data: [100, 250, 400, 600, 800, 1000],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Aylık Kullanıcı Artışı'
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Kullanıcı büyüme grafiği oluşturma hatası:', error);
+            }
+        }
+
+        async function createEarningsChart() {
+            try {
+                const ctx = document.getElementById('earningsChart').getContext('2d');
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Shortlink', 'PTC Ads', 'Oyunlar', 'Görevler', 'Referanslar'],
+                        datasets: [{
+                            label: 'Toplam Kazanç (BONK)',
+                            data: [5000, 3000, 2500, 1500, 1000],
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Kazanç Kaynakları'
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Kazanç grafiği oluşturma hatası:', error);
+            }
+        }
 
         // Sayfa Yükleme İşlemleri
         document.addEventListener('DOMContentLoaded', async () => {
@@ -441,15 +533,15 @@
                 return;
             }
 
-            // Verileri yükle
-            await dataManagement.loadInitialData();
-            
-            // İstatistikleri güncelle
-            await updateGlobalStats();
-            await loadLeaderboards();
+            // Grafikleri oluştur
+            createUserGrowthChart();
+            createEarningsChart();
 
-            // Periyodik olarak istatistikleri güncelle
-            setInterval(updateGlobalStats, 5 * 60 * 1000); // 5 dakikada bir
+            // Mevcut verileri yükle
+            const data = await DATABASE.api.getAllData();
+            renderShortlinksOnIndex(data.shortlinks || []);
+            renderPtcAdsOnIndex(data.ptcAds || []);
+            renderTasksOnIndex(data.tasks || []);
         });
 
         // Çıkış İşlemi
