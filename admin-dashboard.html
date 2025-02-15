@@ -1,554 +1,494 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BONK Coin Admin Yönetim Paneli</title>
+    <title>BONK Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="database.js"></script>
     <style>
         body {
-            background: #0f172a;
-            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
         }
-        .modal {
-            background: rgba(0,0,0,0.5);
-            display: none;
+        .transition-card {
+            transition: all 0.3s ease;
+        }
+        .transition-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-900 p-8">
-    <div class="container mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-white text-center">BONK Coin Admin Yönetim Paneli</h1>
-
-        <!-- Kullanıcı Yönetimi Bölümü -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Kullanıcı Yönetimi</h2>
-                <div class="space-y-4">
-                    <button onclick="openModal('userFilterModal')" class="w-full bg-indigo-600 text-white py-2 rounded">
-                        Kullanıcı Filtrele
+<body>
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="/api/placeholder/32/32" alt="Logo" class="h-8 w-8 mr-2">
+                        <span class="font-bold text-xl text-gray-800">BONK Admin</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="#" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Content
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Users
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Reports
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="lastSync" class="text-sm text-gray-500"></span>
+                    <button onclick="refreshData()" class="p-2 rounded-full hover:bg-gray-100">
+                        <i data-feather="refresh-cw" class="w-5 h-5 text-gray-500"></i>
                     </button>
-                    <button onclick="openModal('userDetailsModal')" class="w-full bg-green-600 text-white py-2 rounded">
-                        Kullanıcı Detayları
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
+                        Logout
                     </button>
                 </div>
             </div>
+        </div>
+    </nav>
 
-            <!-- Günlük Limitler Bölümü -->
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-green-400">Günlük Limitler</h2>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span>Günlük Shortlink Çözme Limiti:</span>
-                        <input type="number" id="dailyShortlinkLimit" value="10" 
-                            class="w-20 p-1 bg-slate-700 rounded text-right">
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>Günlük PTC Ad İzleme Limiti:</span>
-                        <input type="number" id="dailyPtcAdLimit" value="15" 
-                            class="w-20 p-1 bg-slate-700 rounded text-right">
-                    </div>
-                    <button onclick="saveDailyLimits()" class="w-full bg-purple-600 text-white py-2 rounded mt-2">
-                        Limitleri Kaydet
-                    </button>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Overview Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Total Users</h3>
+                    <span class="p-2 bg-blue-50 rounded-md">
+                        <i data-feather="users" class="w-5 h-5 text-blue-500"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <p class="text-2xl font-semibold text-gray-900" id="totalUsers">-</p>
+                    <p class="ml-2 text-sm text-green-600 font-medium" id="userGrowth">
+                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
+                        <span>-</span>
+                    </p>
                 </div>
             </div>
 
-            <!-- Sistem Ayarları -->
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-red-400">Sistem Ayarları</h2>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span>Airdrop Durumu:</span>
-                        <select id="airdropStatus" class="bg-slate-700 p-1 rounded">
-                            <option value="active">Aktif</option>
-                            <option value="paused">Duraklatılmış</option>
-                            <option value="ended">Sonlandırılmış</option>
+            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Total BONK</h3>
+                    <span class="p-2 bg-indigo-50 rounded-md">
+                        <i data-feather="dollar-sign" class="w-5 h-5 text-indigo-500"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <p class="text-2xl font-semibold text-gray-900" id="totalBonk">-</p>
+                    <p class="ml-2 text-sm text-green-600 font-medium" id="bonkGrowth">
+                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
+                        <span>-</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Active Content</h3>
+                    <span class="p-2 bg-green-50 rounded-md">
+                        <i data-feather="activity" class="w-5 h-5 text-green-500"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <p class="text-2xl font-semibold text-gray-900" id="activeContent">-</p>
+                    <p class="ml-2 text-sm text-green-600 font-medium" id="contentGrowth">
+                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
+                        <span>-</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-500">Completion Rate</h3>
+                    <span class="p-2 bg-purple-50 rounded-md">
+                        <i data-feather="percent" class="w-5 h-5 text-purple-500"></i>
+                    </span>
+                </div>
+                <div class="flex items-baseline">
+                    <p class="text-2xl font-semibold text-gray-900" id="completionRate">-</p>
+                    <p class="ml-2 text-sm text-green-600 font-medium" id="completionGrowth">
+                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
+                        <span>-</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Management -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- PTC Ads Management -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">PTC Ads</h2>
+                    <button onclick="openModal('createPtcAdModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+                        Add New
+                    </button>
+                </div>
+                <div class="space-y-4" id="ptcAdsList"></div>
+            </div>
+
+            <!-- Shortlinks Management -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Shortlinks</h2>
+                    <button onclick="openModal('createShortlinkModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+                        Add New
+                    </button>
+                </div>
+                <div class="space-y-4" id="shortlinksList"></div>
+            </div>
+
+            <!-- Tasks Management -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Tasks</h2>
+                    <button onclick="openModal('createTaskModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
+                        Add New
+                    </button>
+                </div>
+                <div class="space-y-4" id="tasksList"></div>
+            </div>
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Activity</h2>
+                <canvas id="activityChart" height="300"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Earnings Distribution</h2>
+                <canvas id="earningsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create PTC Ad Modal -->
+    <div id="createPtcAdModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Create PTC Ad</h3>
+                    <button onclick="closeModal('createPtcAdModal')" class="text-gray-400 hover:text-gray-500">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form id="ptcAdForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">URL</label>
+                        <input type="url" name="url" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">View Duration (10-180 seconds)</label>
+                        <input type="number" name="viewDuration" min="10" max="180" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
+                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('createPtcAdModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Shortlink Modal -->
+    <div id="createShortlinkModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Create Shortlink</h3>
+                    <button onclick="closeModal('createShortlinkModal')" class="text-gray-400 hover:text-gray-500">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form id="shortlinkForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">URL</label>
+                        <input type="url" name="url" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
+                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('createShortlinkModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div id="createTaskModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Create Task</h3>
+                    <button onclick="closeModal('createTaskModal')" class="text-gray-400 hover:text-gray-500">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <form id="taskForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea name="description" required rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
+                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Task Type</label>
+                        <select name="type" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="social">Social Media</option>
+                            <option value="website">Website</option>
+                            <option value="survey">Survey</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span>Minimum Çekim Tutarı:</span>
-                        <input type="number" id="minWithdrawAmount" value="1000" 
-                            class="w-20 p-1 bg-slate-700 rounded text-right">
+                    <div class="mt-4 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('createTaskModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Create
+                        </button>
                     </div>
-                    <button onclick="saveSystemSettings()" class="w-full bg-red-600 text-white py-2 rounded mt-2">
-                        Ayarları Kaydet
-                    </button>
-                </div>
+                </form>
             </div>
-        </div>
-
-        <!-- İçerik Yönetimi -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Shortlink Yönetimi -->
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-indigo-400">Shortlink Yönetimi</h2>
-                <button onclick="openModal('shortlinkModal')" class="w-full bg-indigo-600 text-white py-2 rounded mb-4">
-                    Yeni Shortlink Ekle
-                </button>
-                <div id="shortlinksList" class="space-y-2">
-                    <!-- Dinamik shortlink listesi -->
-                </div>
-            </div>
-
-            <!-- PTC Reklam Yönetimi -->
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-green-400">PTC Reklam Yönetimi</h2>
-                <button onclick="openModal('ptcAdModal')" class="w-full bg-green-600 text-white py-2 rounded mb-4">
-                    Yeni PTC Reklam Ekle
-                </button>
-                <div id="ptcAdsList" class="space-y-2">
-                    <!-- Dinamik PTC reklam listesi -->
-                </div>
-            </div>
-
-            <!-- Görev Yönetimi -->
-            <div class="bg-slate-800 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-purple-400">Görev Yönetimi</h2>
-                <button onclick="openModal('taskModal')" class="w-full bg-purple-600 text-white py-2 rounded mb-4">
-                    Yeni Görev Ekle
-                </button>
-                <div id="tasksList" class="space-y-2">
-                    <!-- Dinamik görev listesi -->
-                </div>
-            </div>
-        </div>
-
-        <!-- İstatistik Grafikleri -->
-        <div class="mt-8 bg-slate-800 rounded-lg p-6">
-            <h2 class="text-2xl font-semibold mb-4 text-blue-400">Platform İstatistikleri</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <canvas id="userGrowthChart"></canvas>
-                </div>
-                <div>
-                    <canvas id="earningsChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Shortlink Modal -->
-    <div id="shortlinkModal" class="fixed inset-0 z-50 modal items-center justify-center">
-        <div class="bg-slate-700 rounded-lg p-8 w-96">
-            <h3 class="text-xl font-semibold mb-4">Yeni Shortlink Ekle</h3>
-            <form id="shortlinkForm">
-                <input type="text" placeholder="Shortlink Başlığı" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <input type="url" placeholder="Shortlink URL" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <input type="number" placeholder="BONK Ödülü" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <div class="flex justify-between">
-                    <button type="button" onclick="closeModal('shortlinkModal')" 
-                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
-                    <button type="submit" 
-                        class="bg-indigo-600 text-white py-2 px-4 rounded">Ekle</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- PTC Ad Modal -->
-    <div id="ptcAdModal" class="fixed inset-0 z-50 modal items-center justify-center">
-        <div class="bg-slate-700 rounded-lg p-8 w-96">
-            <h3 class="text-xl font-semibold mb-4">Yeni PTC Reklam Ekle</h3>
-            <form id="ptcAdForm">
-                <input type="text" placeholder="Reklam Başlığı" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <input type="url" placeholder="Reklam URL" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <input type="number" placeholder="Görüntüleme Başına BONK" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <div class="flex justify-between">
-                    <button type="button" onclick="closeModal('ptcAdModal')" 
-                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
-                    <button type="submit" 
-                        class="bg-green-600 text-white py-2 px-4 rounded">Ekle</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Task Modal -->
-    <div id="taskModal" class="fixed inset-0 z-50 modal items-center justify-center">
-        <div class="bg-slate-700 rounded-lg p-8 w-96">
-            <h3 class="text-xl font-semibold mb-4">Yeni Görev Ekle</h3>
-            <form id="taskForm">
-                <input type="text" placeholder="Görev Başlığı" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <textarea placeholder="Görev Açıklaması" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded"></textarea>
-                <input type="number" placeholder="BONK Ödülü" required 
-                    class="w-full p-2 mb-4 bg-slate-600 rounded">
-                <select class="w-full p-2 mb-4 bg-slate-600 rounded">
-                    <option value="">Görev Türü Seçin</option>
-                    <option value="social">Sosyal Medya</option>
-                    <option value="website">Web Sitesi</option>
-                    <option value="video">Video</option>
-                    <option value="other">Diğer</option>
-                </select>
-                <div class="flex justify-between">
-                    <button type="button" onclick="closeModal('taskModal')" 
-                        class="bg-slate-500 text-white py-2 px-4 rounded">İptal</button>
-                    <button type="submit" 
-                        class="bg-purple-600 text-white py-2 px-4 rounded">Ekle</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script>
-        // Admin Yönetim Fonksiyonları
-        const ADMIN_CONFIG = {
-            dailyShortlinkLimit: 10,
-            dailyPtcAdLimit: 15,
-            systemSettings: {
-                airdropStatus: 'active',
-                minWithdrawAmount: 1000
-            }
-        };
+        // Initialize Feather Icons
+        feather.replace();
 
-        // Modal Yönetimi
+        // Global Variables
+        let lastUpdate = new Date();
+        let charts = {};
+
+        // Initialize Data and UI
+        async function initializeAdmin() {
+            await loadDashboardData();
+            initializeCharts();
+            setupEventListeners();
+            startAutoRefresh();
+        }
+
+        // Load Dashboard Data
+        async function loadDashboardData() {
+            try {
+                const data = await DATABASE.api.getAllData();
+                updateStatistics(data);
+                updateContentLists(data);
+                updateLastSync();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showNotification('Error loading data', 'error');
+            }
+        }
+
+        // Update Statistics
+        function updateStatistics(data) {
+            const stats = calculateStatistics(data);
+            
+            // Update counters with animation
+            animateCounter('totalUsers', stats.totalUsers);
+            animateCounter('totalBonk', stats.totalBonk);
+            animateCounter('activeContent', stats.activeContent);
+            animateCounter('completionRate', stats.completionRate, '%');
+
+            // Update growth indicators
+            updateGrowthIndicator('userGrowth', stats.userGrowth);
+            updateGrowthIndicator('bonkGrowth', stats.bonkGrowth);
+            updateGrowthIndicator('contentGrowth', stats.contentGrowth);
+            updateGrowthIndicator('completionGrowth', stats.completionGrowth);
+
+            // Update charts
+            updateChartData(charts.activityChart, stats.activityData);
+            updateChartData(charts.earningsChart, stats.earningsData);
+        }
+
+        // Calculate Statistics
+        function calculateStatistics(data) {
+            const users = Object.values(data.users || {});
+            const ptcAds = data.ptcAds || [];
+            const shortlinks = data.shortlinks || [];
+            const tasks = data.tasks || [];
+
+            return {
+                totalUsers: users.length,
+                totalBonk: users.reduce((sum, user) => sum + (user.bonkBalance || 0), 0),
+                activeContent: ptcAds.filter(ad => ad.status === 'active').length +
+                             shortlinks.filter(link => link.status === 'active').length +
+                             tasks.filter(task => task.status === 'active').length,
+                completionRate: calculateCompletionRate(data),
+                userGrowth: calculateGrowth('users', data),
+                bonkGrowth: calculateGrowth('bonk', data),
+                contentGrowth: calculateGrowth('content', data),
+                completionGrowth: calculateGrowth('completion', data),
+                activityData: generateActivityData(data),
+                earningsData: generateEarningsData(data)
+            };
+        }
+
+        // Content Management Functions
+        async function createPtcAd(formData) {
+            try {
+                const adminId = localStorage.getItem('adminId');
+                const adData = {
+                    title: formData.get('title'),
+                    url: formData.get('url'),
+                    viewDuration: parseInt(formData.get('viewDuration')),
+                    bonkReward: parseInt(formData.get('bonkReward'))
+                };
+
+                const newAd = await DATABASE.contentManagement.createPtcAd(adminId, adData);
+                if (newAd) {
+                    showNotification('PTC Ad created successfully', 'success');
+                    closeModal('createPtcAdModal');
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                console.error('Error creating PTC ad:', error);
+                showNotification(error.message, 'error');
+            }
+        }
+
+        async function createShortlink(formData) {
+            try {
+                const adminId = localStorage.getItem('adminId');
+                const shortlinkData = {
+                    title: formData.get('title'),
+                    url: formData.get('url'),
+                    bonkReward: parseInt(formData.get('bonkReward'))
+                };
+
+                const newShortlink = await DATABASE.contentManagement.createShortlink(adminId, shortlinkData);
+                if (newShortlink) {
+                    showNotification('Shortlink created successfully', 'success');
+                    closeModal('createShortlinkModal');
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                console.error('Error creating shortlink:', error);
+                showNotification(error.message, 'error');
+            }
+        }
+
+        async function createTask(formData) {
+            try {
+                const adminId = localStorage.getItem('adminId');
+                const taskData = {
+                    title: formData.get('title'),
+                    description: formData.get('description'),
+                    bonkReward: parseInt(formData.get('bonkReward')),
+                    type: formData.get('type')
+                };
+
+                const newTask = await DATABASE.contentManagement.createTask(adminId, taskData);
+                if (newTask) {
+                    showNotification('Task created successfully', 'success');
+                    closeModal('createTaskModal');
+                    await loadDashboardData();
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // UI Helper Functions
+        function showNotification(message, type = 'success') {
+            // Implementation of notification system
+        }
+
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
+            document.getElementById(modalId).classList.remove('hidden');
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            document.getElementById(modalId).classList.add('hidden');
         }
 
-        // Günlük Limit Kaydetme
-        function saveDailyLimits() {
-            const shortlinkLimit = document.getElementById('dailyShortlinkLimit').value;
-            const ptcAdLimit = document.getElementById('dailyPtcAdLimit').value;
-
-            ADMIN_CONFIG.dailyShortlinkLimit = parseInt(shortlinkLimit);
-            ADMIN_CONFIG.dailyPtcAdLimit = parseInt(ptcAdLimit);
-
-            // Veritabanına kaydetme
-            DATABASE.config.dailyLimits = {
-                shortlink: ADMIN_CONFIG.dailyShortlinkLimit,
-                ptcAd: ADMIN_CONFIG.dailyPtcAdLimit
-            };
-
-            alert('Günlük limitler başarıyla güncellendi!');
+        function updateLastSync() {
+            lastUpdate = new Date();
+            document.getElementById('lastSync').textContent = 
+                `Last updated: ${lastUpdate.toLocaleTimeString()}`;
         }
 
-        // Sistem Ayarları Kaydetme
-        function saveSystemSettings() {
-            const airdropStatus = document.getElementById('airdropStatus').value;
-            const minWithdrawAmount = document.getElementById('minWithdrawAmount').value;
+        // Event Listeners Setup
+        function setupEventListeners() {
+            // Form submissions
+            document.getElementById('ptcAdForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createPtcAd(new FormData(e.target));
+            });
 
-            ADMIN_CONFIG.systemSettings.airdropStatus = airdropStatus;
-            ADMIN_CONFIG.systemSettings.minWithdrawAmount = parseInt(minWithdrawAmount);
+            document.getElementById('shortlinkForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createShortlink(new FormData(e.target));
+            });
 
-            // Veritabanına kaydetme
-            DATABASE.config.systemSettings = ADMIN_CONFIG.systemSettings;
-
-            alert('Sistem ayarları başarıyla güncellendi!');
+            document.getElementById('taskForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createTask(new FormData(e.target));
+            });
         }
 
-        // Shortlink Ekleme
-        async function addShortlink(title, url, bonkReward) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.shortlinks) data.shortlinks = [];
-
-                const newShortlink = {
-                    id: Date.now(),
-                    title,
-                    url,
-                    bonkReward: parseInt(bonkReward),
-                    createdAt: new Date().toISOString(),
-                    status: 'active',
-                    dailyLimit: ADMIN_CONFIG.dailyShortlinkLimit
-                };
-
-                data.shortlinks.push(newShortlink);
-                await DATABASE.api.updateData(data);
-                
-                // Index sayfasına dinamik olarak ekle
-                renderShortlinksOnIndex(data.shortlinks);
-                
-                alert('Shortlink başarıyla eklendi!');
-            } catch (error) {
-                console.error('Shortlink ekleme hatası:', error);
-                alert('Shortlink eklenirken bir hata oluştu.');
-            }
+        // Auto Refresh
+        function startAutoRefresh() {
+            setInterval(async () => {
+                await loadDashboardData();
+            }, 30000); // Refresh every 30 seconds
         }
 
-        // PTC Ad Ekleme
-        async function addPtcAd(title, url, bonkPerView) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.ptcAds) data.ptcAds = [];
-
-                const newPtcAd = {
-                    id: Date.now(),
-                    title,
-                    url,
-                    bonkPerView: parseInt(bonkPerView),
-                    createdAt: new Date().toISOString(),
-                    status: 'active',
-                    dailyLimit: ADMIN_CONFIG.dailyPtcAdLimit,
-                    viewDuration: 15, // Default 15 saniye görüntüleme süresi
-                    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 gün sonra sona erecek
-                };
-
-                data.ptcAds.push(newPtcAd);
-                await DATABASE.api.updateData(data);
-                
-                // Index sayfasına dinamik olarak ekle
-                renderPtcAdsOnIndex(data.ptcAds);
-                
-                alert('PTC Reklam başarıyla eklendi!');
-            } catch (error) {
-                console.error('PTC reklam ekleme hatası:', error);
-                alert('PTC reklam eklenirken bir hata oluştu.');
-            }
-        }
-
-        // Görev Ekleme
-        async function addTask(title, description, bonkReward, type) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.tasks) data.tasks = [];
-
-                const newTask = {
-                    id: Date.now(),
-                    title,
-                    description,
-                    bonkReward: parseInt(bonkReward),
-                    type,
-                    createdAt: new Date().toISOString(),
-                    status: 'active',
-                    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 gün sonra sona erecek
-                    completionLimit: 100 // Toplam tamamlanabilecek görev sayısı
-                };
-
-                data.tasks.push(newTask);
-                await DATABASE.api.updateData(data);
-                
-                // Index sayfasına dinamik olarak ekle
-                renderTasksOnIndex(data.tasks);
-                
-                alert('Görev başarıyla eklendi!');
-            } catch (error) {
-                console.error('Görev ekleme hatası:', error);
-                alert('Görev eklenirken bir hata oluştu.');
-            }
-        }
-
-        // İçerik Render Fonksiyonları
-        function renderShortlinksOnIndex(shortlinks) {
-            const shortlinksContainer = document.getElementById('shortlinksContainer');
-            if (!shortlinksContainer) return;
-
-            if (shortlinks && shortlinks.length > 0) {
-                shortlinksContainer.innerHTML = shortlinks
-                    .filter(sl => sl.status === 'active') // Sadece aktif shortlinkler
-                    .map(link => `
-                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
-                            <h4 class="font-semibold text-gray-800 mb-2">${link.title}</h4>
-                            <div class="flex justify-between items-center">
-                                <span class="text-green-600 font-medium">
-                                    Çözme: ${link.bonkReward} BONK
-                                </span>
-                                <button onclick="openShortlink('${link.url}')" 
-                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    Çöz
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-            } else {
-                shortlinksContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz shortlink yok.</p>';
-            }
-        }
-
-        function renderPtcAdsOnIndex(ptcAds) {
-            const ptcAdsContainer = document.getElementById('ptcAdsContainer');
-            if (!ptcAdsContainer) return;
-
-            if (ptcAds && ptcAds.length > 0) {
-                ptcAdsContainer.innerHTML = ptcAds
-                    .filter(ad => ad.status === 'active' && new Date(ad.expirationDate) > new Date()) // Aktif ve süresi dolmamış reklamlar
-                    .map(ad => `
-                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
-                            <h4 class="font-semibold text-gray-800 mb-2">${ad.title}</h4>
-                            <div class="flex justify-between items-center">
-                                <span class="text-green-600 font-medium">
-                                    Görüntüleme: ${ad.bonkPerView} BONK
-                                </span>
-                                <button onclick="watchPtcAd('${ad.url}')"
-                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    İzle
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-            } else {
-                ptcAdsContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz PTC reklam yok.</p>';
-            }
-        }
-
-        function renderTasksOnIndex(tasks) {
-            const tasksContainer = document.getElementById('tasksList');
-            if (!tasksContainer) return;
-
-            if (tasks && tasks.length > 0) {
-                tasksContainer.innerHTML = tasks
-                    .filter(task => task.status === 'active' && new Date(task.expirationDate) > new Date()) // Aktif ve süresi dolmamış görevler
-                    .map(task => `
-                        <div class="bg-gray-100 p-4 rounded-lg mb-4 bonk-card">
-                            <h4 class="font-semibold text-gray-800 mb-2">${task.title}</h4>
-                            <p class="text-gray-600 text-sm mb-2">${task.description}</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-green-600 font-medium">
-                                    ${task.bonkReward} BONK - ${task.type}
-                                </span>
-                                <button onclick="completeTask('${task.id}')" 
-                                    class="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-700 transition">
-                                    Tamamla
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-            } else {
-                tasksContainer.innerHTML = '<p class="text-gray-600 text-center">Henüz görev yok.</p>';
-            }
-        }
-
-        // Form Gönderim İşleyicileri
-        document.getElementById('shortlinkForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const title = this.querySelector('input[type="text"]').value;
-            const url = this.querySelector('input[type="url"]').value;
-            const bonkReward = this.querySelector('input[type="number"]').value;
-
-            await addShortlink(title, url, bonkReward);
-            closeModal('shortlinkModal');
-            this.reset();
-        });
-
-        document.getElementById('ptcAdForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const title = this.querySelector('input[type="text"]').value;
-            const url = this.querySelector('input[type="url"]').value;
-            const bonkPerView = this.querySelector('input[type="number"]').value;
-
-            await addPtcAd(title, url, bonkPerView);
-            closeModal('ptcAdModal');
-            this.reset();
-        });
-
-        document.getElementById('taskForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const title = this.querySelector('input[type="text"]').value;
-            const description = this.querySelector('textarea').value;
-            const bonkReward = this.querySelector('input[type="number"]').value;
-            const type = this.querySelector('select').value;
-
-            await addTask(title, description, bonkReward, type);
-            closeModal('taskModal');
-            this.reset();
-        });
-
-        // İstatistik Grafikleri Oluşturma
-        async function createUserGrowthChart() {
-            try {
-                const stats = await DATABASE.stats.getGlobalStats();
-                const ctx = document.getElementById('userGrowthChart').getContext('2d');
-                
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
-                        datasets: [{
-                            label: 'Kullanıcı Sayısı',
-                            data: [100, 250, 400, 600, 800, 1000],
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Aylık Kullanıcı Artışı'
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Kullanıcı büyüme grafiği oluşturma hatası:', error);
-            }
-        }
-
-        async function createEarningsChart() {
-            try {
-                const ctx = document.getElementById('earningsChart').getContext('2d');
-                
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Shortlink', 'PTC Ads', 'Oyunlar', 'Görevler', 'Referanslar'],
-                        datasets: [{
-                            label: 'Toplam Kazanç (BONK)',
-                            data: [5000, 3000, 2500, 1500, 1000],
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.6)',
-                                'rgba(255, 206, 86, 0.6)',
-                                'rgba(75, 192, 192, 0.6)',
-                                'rgba(153, 102, 255, 0.6)',
-                                'rgba(255, 159, 64, 0.6)'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Kazanç Kaynakları'
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Kazanç grafiği oluşturma hatası:', error);
-            }
-        }
-
-        // Sayfa Yükleme İşlemleri
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Giriş kontrolü
-            const isLoggedIn = localStorage.getItem('adminAuth') === 'true';
-            if (!isLoggedIn) {
-                window.location.href = '/admin.html';
-                return;
-            }
-
-            // Grafikleri oluştur
-            createUserGrowthChart();
-            createEarningsChart();
-
-            // Mevcut verileri yükle
-            const data = await DATABASE.api.getAllData();
-            renderShortlinksOnIndex(data.shortlinks || []);
-            renderPtcAdsOnIndex(data.ptcAds || []);
-            renderTasksOnIndex(data.tasks || []);
-        });
-
-        // Çıkış İşlemi
-        function logout() {
-            localStorage.removeItem('adminAuth');
-            window.location.href = '/admin.html';
-        }
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeAdmin);
     </script>
 </body>
 </html>
