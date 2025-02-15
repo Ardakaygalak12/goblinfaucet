@@ -49,7 +49,6 @@ const DATABASE = {
                 const data = await DATABASE.api.getAllData();
                 if (!data.users) data.users = {};
 
-                // Preserve existing user data structure
                 data.users[userId] = {
                     ...data.users[userId],
                     ...userData,
@@ -77,7 +76,6 @@ const DATABASE = {
             try {
                 const data = await DATABASE.api.getAllData();
                 
-                // Initialize new user with referral data
                 if (!data.users[userId]) {
                     data.users[userId] = {
                         referredBy: referrerId,
@@ -91,7 +89,6 @@ const DATABASE = {
                     };
                 }
 
-                // Award referral bonus
                 if (data.users[referrerId]) {
                     data.users[referrerId].bonkBalance = (data.users[referrerId].bonkBalance || 0) + 1000;
                     if (!data.users[referrerId].referrals) data.users[referrerId].referrals = [];
@@ -104,6 +101,53 @@ const DATABASE = {
                 return await DATABASE.api.updateData(data);
             } catch (error) {
                 console.error('Referral error:', error);
+                return null;
+            }
+        }
+    },
+
+    // Earning Management  
+    earnings: {
+        async recordEarning(userId, source, amount) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                if (!data.users[userId]) {
+                    data.users[userId] = { earnings: {} };  
+                }
+                if (!data.users[userId].earnings) {
+                    data.users[userId].earnings = {};
+                }
+
+                data.users[userId].earnings[source] = (data.users[userId].earnings[source] || 0) + amount;
+                data.users[userId].bonkBalance = (data.users[userId].bonkBalance || 0) + amount;
+
+                return await DATABASE.api.updateData(data);
+            } catch (error) {  
+                console.error('Earning record error:', error);
+                return null;
+            }
+        }
+    },
+
+    // Ad Management 
+    ads: {
+        async recordAdWatch(userId) {
+            try {
+                return await DATABASE.earnings.recordEarning(userId, 'ptcAds', 100);
+            } catch (error) {
+                console.error('Ad watch record error:', error);
+                return null;  
+            }
+        }
+    },
+
+    // Link Management
+    links: {  
+        async recordLinkClick(userId) {
+            try {
+                return await DATABASE.earnings.recordEarning(userId, 'shortLinks', 50); 
+            } catch (error) {
+                console.error('Link click record error:', error);
                 return null;
             }
         }
@@ -244,27 +288,3 @@ const DATABASE = {
         }
     }
 };
-
-// Usage examples:
-/*
-// Update user
-await DATABASE.users.updateUser('telegramId', {
-    username: 'userName',
-    bonkBalance: 1000
-});
-
-// Add referral
-await DATABASE.users.addReferral('newUserId', 'referrerId');
-
-// Update game stats
-await DATABASE.games.updateGameStats('telegramId', 'flappyBird', {
-    score: 10,
-    bonkEarned: 500
-});
-
-// Get statistics
-const stats = await DATABASE.stats.getGlobalStats();
-
-// Get leaderboard
-const leaderboard = await DATABASE.stats.getLeaderboard('flappyBird', 5);
-*/
