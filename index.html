@@ -23,44 +23,37 @@
             <p class="text-lg text-gray-600">Katılarak BONK tokenlerini kazanın! Kalan Süre: <span id="timeLeft" class="font-medium"></span></p>
         </header>
 
-        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <main>
             <!-- Airdrop Bölümü -->
-            <section class="bg-white rounded-lg shadow-md p-6">
+            <section class="bg-white rounded-lg shadow-md p-6 mb-8">
                 <h2 class="text-2xl font-semibold mb-4">Airdrop</h2>
-                <p class="text-gray-600 mb-4">Airdrop'a katılarak BONK tokenlerini kazanın. Ödemeler cüzdanınıza yapılacaktır. Unutmayın, airdrop dağıtımı bakiyenize göre gerçekleştirilecektir.</p>
-                <p class="text-gray-600 mb-6">Ayrıca çözdüğünüz shortlink'ler, izlediğiniz PTC reklamlar ve oynadığınız oyunlar da BONK kazanmanızı sağlar.</p>
+                <p class="text-gray-600 mb-4">Airdrop, 170 gün boyunca devam edecek. Her gün saat 00:00'dan sonra kalan gün sayısı 1 azalacak. Airdrop dağıtımı toplam BONK miktarına ve kazanılan BONK'a göre adil bir şekilde gerçekleştirilecek.</p>
+                <p class="text-gray-600 mb-6">Çözdüğünüz shortlink'ler, izlediğiniz PTC reklamlar ve oynadığınız oyunlar da BONK kazanmanızı sağlar. Kazanılan BONK'lar, airdrop havuzuna eklenecek ve snapshot'a göre dağıtılacak.</p>
                 <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="joinAirdrop">Katıl</button>
             </section>
 
-            <!-- PTC Ads Bölümü -->
-            <section class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold mb-4">PTC Ads</h2>  
-                <div id="ptcAdsContainer">
-                    <!-- PTC Ads burada listelenecek -->
+            <!-- PTC Ads ve Shortlinks Bölümü -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">PTC Ads ve Shortlinks</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">PTC Ads</h3>
+                        <div id="ptcAdsContainer">
+                            <!-- PTC Ads burada listelenecek -->
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-semibold mb-4">Shortlinks</h3>
+                        <div id="shortlinksContainer">
+                            <!-- Shortlink'ler burada listelenecek -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- Shortlinks Bölümü -->  
-            <section class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold mb-4">Shortlinks</h2>
-                <div id="shortlinksContainer">
-                    <!-- Shortlink'ler burada listelenecek -->  
-                </div>
-            </section>
-        </main>
-
-        <section class="mt-8">
-            <h2 class="text-2xl font-semibold mb-4">Referans Sistemi</h2>
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <p class="text-gray-600 mb-4">Referans linkinizi paylaşarak arkadaşlarınızı davet edin ve her referans için 1000 BONK kazanın!</p>
-                <div class="bg-gray-100 rounded-md p-4 mb-4 font-mono text-sm break-all" id="refLink">
-                    Yükleniyor...
-                </div>
-                <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="copyRefLink">Kopyala</button>
-            </div>  
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-semibold mb-4">İstatistikler</h3>
+            <!-- İstatistikler Bölümü -->
+            <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4">İstatistikler</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="flex items-center">
                         <div class="bg-indigo-600 text-white rounded-full p-2 mr-4">
@@ -81,40 +74,64 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="mt-8">
-            <h2 class="text-2xl font-semibold mb-4">Oyunlar</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/flappy-preview.png" alt="Flappy BONK" class="w-full h-48 object-cover border-b-4 border-indigo-600">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">Flappy BONK</h3>
-                        <p class="text-gray-600 mb-4">Her engelde 500 BONK kazanın! Öldüğünüzde reklam izleyerek devam edin.</p>
-                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('flappy')">Oyna</button>
+            <!-- Arkadaşlar Bölümü -->
+            <section class="bg-white rounded-lg shadow-md p-6 mb-8" id="friendsSection">
+                <h2 class="text-2xl font-semibold mb-4">Arkadaşlar</h2>
+                <div class="mb-4">
+                    <h3 class="text-xl font-semibold mb-2">Referans Linkiniz</h3>
+                    <div class="bg-gray-100 rounded-md p-4 mb-4 font-mono text-sm break-all" id="refLink">
+                        Yükleniyor...
+                    </div>
+                    <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" id="copyRefLink">Kopyala</button>
+                </div>
+                <div id="friendsList">
+                    <!-- Arkadaşlar listesi burada gösterilecek -->
+                </div>
+            </section>
+
+            <!-- Oyunlar Bölümü -->
+            <section class="mb-8" id="gamesSection">
+                <h2 class="text-2xl font-semibold mb-4">Oyunlar</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/flappy-preview.png" alt="Flappy BONK" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2">Flappy BONK</h3>
+                            <p class="text-gray-600 mb-4">Her engelde 500 BONK kazanın! Öldüğünüzde reklam izleyerek devam edin.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('flappy')">Oyna</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/clicker-preview.png" alt="BONK Clicker" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2">BONK Clicker</h3>
+                            <p class="text-gray-600 mb-4">Her tıklamada BONK kazanın! 2x bonus için reklam izleyin.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('clicker')">Oyna</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/dino-preview.png" alt="BONK Dino" class="w-full h-48 object-cover border-b-4 border-indigo-600">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2">BONK Dino</h3>
+                            <p class="text-gray-600 mb-4">Koşarken BONK topla! Öldüğünüzde reklam izleyerek devam edin.</p>
+                            <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('dino')">Oyna</button>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/clicker-preview.png" alt="BONK Clicker" class="w-full h-48 object-cover border-b-4 border-indigo-600">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">BONK Clicker</h3>
-                        <p class="text-gray-600 mb-4">Her tıklamada BONK kazanın! 2x bonus için reklam izleyin.</p>
-                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('clicker')">Oyna</button>
-                    </div>
+            <!-- Görevler Bölümü -->
+            <section class="bg-white rounded-lg shadow-md p-6" id="tasksSection">
+                <h2 class="text-2xl font-semibold mb-4">Görevler</h2>
+                <div id="tasksList">
+                    <!-- Görevler burada listelenecek -->
                 </div>
-
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="https://raw.githubusercontent.com/bonk-coin/game-assets/main/dino-preview.png" alt="BONK Dino" class="w-full h-48 object-cover border-b-4 border-indigo-600">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">BONK Dino</h3>
-                        <p class="text-gray-600 mb-4">Koşarken BONK topla! Öldüğünüzde reklam izleyerek devam edin.</p>
-                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition" onclick="playGame('dino')">Oyna</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </main>
     </div>
 
     <footer class="mt-8">
@@ -127,25 +144,19 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="tasksLink">
+                    <a href="#tasksSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="check-square" class="h-6 w-6 mb-1"></i>
                         <span class="text-sm">Görevler</span>
                     </a>  
                 </li>
                 <li>
-                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="gamesLink">
+                    <a href="#gamesSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="box" class="h-6 w-6 mb-1"></i>  
                         <span class="text-sm">Oyunlar</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="referralsLink">
-                        <i data-feather="users" class="h-6 w-6 mb-1"></i>
-                        <span class="text-sm">Referanslar</span>
-                    </a>
-                </li>
                 <li>  
-                    <a href="#" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition" id="friendsLink">
+                    <a href="#friendsSection" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 transition">
                         <i data-feather="user-plus" class="h-6 w-6 mb-1"></i>
                         <span class="text-sm">Arkadaşlar</span>  
                     </a>
@@ -163,7 +174,7 @@
         // Telegram WebApp
         const tg = window.Telegram.WebApp;
         if (tg) tg.expand();
-        
+
         // Oyun Yönetimi
         function playGame(gameType) {
             const gameUrls = {
@@ -194,8 +205,11 @@
 
         // Airdrop süresi hesaplama
         function calculateTimeLeft() {
-            const endDate = new Date('2024-01-01').getTime();
-            const now = new Date().getTime();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + 170);
+            endDate.setHours(0, 0, 0, 0);
+            
+            const now = new Date();
             const timeLeft = endDate - now;
 
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
@@ -210,23 +224,6 @@
         document.getElementById('joinAirdrop').addEventListener('click', async () => {
             // Airdrop'a katılma işlemleri burada gerçekleştirilecek 
             showNotification('Airdrop katılımınız alındı!');
-        });
-
-        // Navbar bağlantılarının işlevselliği
-        document.getElementById('tasksLink').addEventListener('click', () => {
-            showNotification('Görevler sayfası henüz hazır değil.');  
-        });
-
-        document.getElementById('gamesLink').addEventListener('click', () => {
-            showNotification('Oyunlar sayfası henüz hazır değil.');
-        });
-
-        document.getElementById('referralsLink').addEventListener('click', () => {
-            showNotification('Referanslar sayfası henüz hazır değil.');
-        });
-
-        document.getElementById('friendsLink').addEventListener('click', () => {
-            showNotification('Arkadaşlar sayfası henüz hazır değil.');  
         });
 
         // PTC Ads ve Shortlink'lerin listelenmesi
@@ -245,20 +242,37 @@
         listPtcAds();
         listShortlinks();
 
-        // Bildirim gösterme fonksiyonu 
-        function showNotification(message, duration = 3000) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.opacity = '1';
-            notification.style.pointerEvents = 'auto';
-
-            setTimeout(() => {
-                notification.style.opacity= '0';
-notification.style.pointerEvents = 'none';
-}, duration);
+        // Arkadaşlar listesinin yüklenmesi
+        async function loadFriendsList() {
+            // Arkadaşlar listesi burada yüklenecek
+            const friendsList = document.getElementById('friendsList');
+            friendsList.innerHTML = '<p class="text-gray-600">Henüz arkadaşınız yok.</p>';
 }
+        loadFriendsList();
 
-        // Sayfa yükleme işlemleri
+    // Görevlerin listelenmesi
+    async function listTasks() {
+        // Admin panelinden görevler alınıp burada listelenecek
+        const tasksList = document.getElementById('tasksList');
+        tasksList.innerHTML = '<p class="text-gray-600">Henüz görev yok.</p>';
+    }
+
+    listTasks();
+
+    // Bildirim gösterme fonksiyonu 
+    function showNotification(message, duration = 3000) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.opacity = '1';
+        notification.style.pointerEvents = 'auto';
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.pointerEvents = 'none';
+        }, duration);
+    }
+
+    // Sayfa yükleme işlemleri
     window.onload = async function() {
         // Telegram kullanıcı bilgisi
         const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
