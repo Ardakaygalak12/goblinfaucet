@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BONK Admin Panel</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1e293b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover {
+            background: #f1f5f9;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1e293b;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #1e293b;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .stat-card .trend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #f1f5f9;
+        }
+
+        .trend.up {
+            color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .trend.down {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Charts & Tables */
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Buttons & Actions */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            display: none;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Logs */
+        .log-entry {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .log-entry.info {
+            border-left-color: var(--primary);
+        }
+
+        .log-entry.warning {
+            border-left-color: var(--warning);
+        }
+
+        .log-entry.error {
+            border-left-color: var(--danger);
+        }
+
+        .log-time {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>BONK Admin</h2>
+            </div>
+            <nav>
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    📊 Dashboard
+                </a>
+                <a href="#users" class="nav-item" onclick="showSection('users')">
+                    👥 Kullanıcılar
+                </a>
+                <a href="#games" class="nav-item" onclick="showSection('games')">
+                    🎮 Oyunlar
+                </a>
+                <a href="#transactions" class="nav-item" onclick="showSection('transactions')">
+                    💰 İşlemler
+                </a>
+                <a href="#logs" class="nav-item" onclick="showSection('logs')">
+                    📝 Loglar
+                </a>
+                <a href="#settings" class="nav-item" onclick="showSection('settings')">
+                    ⚙️ Ayarlar
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section">
+                <div class="header">
+                    <h1>Dashboard</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="refreshStats()">
+                            🔄 Yenile
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Toplam Kullanıcı</h3>
+                        <p id="totalUsers">Yükleniyor...</p>
+                        <span class="trend up">+5.2%</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Toplam BONK</h3>
+                        <p id="totalBonk">Yükleniyor...</p>
+                        <span class="trend up">+12.3%</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Aktif Kullanıcılar</h3>
+                        <p id="activeUsers">Yükleniyor...</p>
+                        <span class="trend down">-2.1%</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Toplam Oyun</h3>
+                        <p id="totalGames">Yükleniyor...</p>
+                        <span class="trend up">+8.7%</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Kullanıcı Aktivitesi (Son 7 Gün)</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Oyun Dağılımı</h3>
+                    <canvas id="gamesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users" class="section" style="display: none;">
+                <div class="header">
+                    <h1>Kullanıcılar</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="showModal('bulkBonkModal')">
+                            💰 Toplu BONK Gönder
+                        </button>
+                        <button class="btn btn-warning" onclick="exportUsers()">
+                            📥 Dışa Aktar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" class="form-control" placeholder="Kullanıcı ara..." 
+                               oninput="searchUsers(this.value)" style="max-width: 300px;">
+                        <select class="form-control" style="max-width: 200px;" onchange="filterUsers(this.value)">
+                            <option value="all">Tüm Kullanıcılar</option>
+                            <option value="active">Aktif Kullanıcılar</option>
+                            <option value="banned">Yasaklı Kullanıcılar</option>
+                            <option value="referral">Referanslı Kullanıcılar</option>
+                        </select>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>BONK Bakiye</th>
+                                <th>Referanslar</th>
+                                <th>Son Aktivite</th>
+                                <th>Durum</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTable">
+                            <!-- Kullanıcı listesi JavaScript ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Games Section -->
+            <div id="games" class="section" style="display: none;">
+                <div class="header">
+                    <h1>Oyun İstatistikleri</h1>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Flappy BONK</h3>
+                        <p id="flappyStats">
+                            En Yüksek Skor: <span id="flappyHighScore">0</span><br>
+                            Toplam Oyun: <span id="flappyTotalGames">0</span>
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>BONK Clicker</h3>
+                        <p id="clickerStats">
+                            Toplam Tıklama: <span id="totalClicks">0</span><br>
+                            Aktif Auto Clicker: <span id="activeAutoClickers">0</span>
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>BONK Runner</h3>
+                        <p id="runnerStats">
+                            En Yüksek Skor: <span id="runnerHighScore">0</span><br>
+                            Toplam Oyun: <span id="runnerTotalGames">0</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Oyun Aktivitesi (24 Saat)</h3>
+                    <canvas id="hourlyGameChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Oyun Başına BONK Kazancı</h3>
+                    <canvas id="bonkPerGameChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div id="transactions" class="section" style="display: none;">
+                <div class="header">
+                    <h1>İşlem Geçmişi</h1>
+                    <div>
+                        <button class="btn btn-warning" onclick="exportTransactions()">
+                            📥 Dışa Aktar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>BONK Dağıtım Grafiği</h3>
+                    <canvas id="bonkDistributionChart"></canvas>
+                </div>
+
+                <div class="table-container">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" class="form-control" placeholder="İşlem ara..." 
+                               style="max-width: 300px;">
+                        <input type="date" class="form-control" style="max-width: 200px;">
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kullanıcı ID</th>
+                                <th>İşlem Tipi</th>
+                                <th>Miktar</th>
+                                <th>Kaynak</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTable">
+                            <!-- İşlem listesi JavaScript ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Logs Section -->
+            <div id="logs" class="section" style="display: none;">
+                <div class="header">
+                    <h1>Sistem Logları</h1>
+                    <div>
+                        <button class="btn btn-warning" onclick="exportLogs()">
+                            📥 Dışa Aktar
+                        </button>
+                        <button class="btn btn-danger" onclick="clearLogs()">
+                            🗑️ Temizle
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <select class="form-control" style="max-width: 200px;">
+                            <option value="all">Tüm Loglar</option>
+                            <option value="error">Hatalar</option>
+                            <option value="warning">Uyarılar</option>
+                            <option value="info">Bilgiler</option>
+                        </select>
+                        <input type="date" class="form-control" style="max-width: 200px;">
+                    </div>
+                    <div id="logContainer">
+                        <!-- Log listesi JavaScript ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section" style="display: none;">
+                <div class="header">
+                    <h1>Sistem Ayarları</h1>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Genel Ayarlar</h3>
+                    <div class="form-group">
+                        <label class="form-label">Referans BONK Miktarı</label>
+                        <input type="number" class="form-control" id="referralBonkAmount" value="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Minimum Ödeme Miktarı</label>
+                        <input type="number" class="form-control" id="minPayoutAmount" value="5000">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        💾 Ayarları Kaydet
+                    </button>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Oyun Ayarları</h3>
+                    <div class="form-group">
+                        <label class="form-label">Flappy BONK - Engel Başı Kazanç</label>
+                        <input type="number" class="form-control" id="flappyBonkPerPipe" value="500">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Clicker - Tıklama Başı Kazanç</label>
+                        <input type="number" class="form-control" id="clickerBonkPerClick" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Runner - Coin Başı Kazanç</label>
+                        <input type="number" class="form-control" id="runnerBonkPerCoin" value="100">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveGameSettings()">
+                        💾 Oyun Ayarlarını Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Toplu BONK Gönderme Modal -->
+    <div id="bulkBonkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Toplu BONK Gönder</h3>
+                <button class="modal-close" onclick="hideModal('bulkBonkModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gönderilecek Miktar</label>
+                <input type="number" class="form-control" id="bulkBonkAmount">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hedef Kullanıcılar</label>
+                <select class="form-control" id="bulkBonkTarget">
+                    <option value="all">Tüm Kullanıcılar</option>
+                    <option value="active">Aktif Kullanıcılar</option>
+                    <option value="referral">Referanslı Kullanıcılar</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="sendBulkBonk()">
+                💰 BONK Gönder
+            </button>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Düzenleme Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Kullanıcı Düzenle</h3>
+                <button class="modal-close" onclick="hideModal('editUserModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">BONK Bakiyesi</label>
+                <input type="number" class="form-control" id="editUserBonk">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Durum</label>
+                <select class="form-control" id="editUserStatus">
+                    <option value="active">Aktif</option>
+                    <option value="banned">Yasaklı</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Not</label>
+                <textarea class="form-control" id="editUserNote"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveUserEdit()">
+                💾 Kaydet
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Admin Listesi
+        const ADMIN_IDS = ['5967212106'];
+
+        // DOM Elementleri
+        const sections = document.querySelectorAll('.section');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        // Charts
+        let activityChart, gamesChart, hourlyGameChart, bonkPerGameChart, bonkDistributionChart;
+
+        // Yetkilendirme Kontrolü
+        function checkAuth() {
+            const tg = window.Telegram.WebApp;
+            if (!tg.initDataUnsafe?.user?.id || !ADMIN_IDS.includes(tg.initDataUnsafe.user.id.toString())) {
+                window.location.href = '/';
+                return false;
+            }
+            return true;
+        }
+
+        // Bölüm Gösterme
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${sectionId}`) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Bölüme özel veri yükleme
+            switch(sectionId) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'games':
+                    loadGameStats();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    break;
+                case 'logs':
+                    loadLogs();
+                    break;
+            }
+        }
+
+        // Dashboard Verilerini Yükle
+        async function loadDashboardData() {
+            try {
+                const stats = await DATABASE.stats.getGlobalStats();
+                
+                // İstatistikleri güncelle
+                document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+                document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
+                document.getElementById('totalGames').textContent = 
+                    (stats.gameStats.flappyBird.totalPlays + 
+                     stats.gameStats.clicker.totalClicks + 
+                     stats.gameStats.dinoRunner.totalPlays).toLocaleString();
+
+                // Aktif kullanıcıları hesapla
+                const data = await DATABASE.api.getAllData();
+                const today = new Date().toISOString().split('T')[0];
+                const activeUsers = Object.values(data.users || {}).filter(user => 
+                    user.lastPlayed?.startsWith(today)
+                ).length;
+                document.getElementById('activeUsers').textContent = activeUsers.toLocaleString();
+
+                // Grafikleri güncelle
+                updateActivityChart(data);
+                updateGamesChart(stats.gameStats);
+            } catch (error) {
+                showNotification('Veri yükleme hatası!', 'error');
+                console.error('Dashboard veri yükleme hatası:', error);
+            }
+        }
+
+        // Grafikleri Güncelle
+        function updateActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Son 7 günün verilerini hazırla
+            const dates = [...Array(7)].map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                return d.toISOString().split('T')[0];
+            }).reverse();
+
+            const activities = dates.map(date => {
+                return Object.values(data.users || {}).filter(user => 
+                    user.lastPlayed?.startsWith(date)
+                ).length;
+            });
+
+            if (activityChart) activityChart.destroy();
+            activityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Aktif Kullanıcılar',
+                        data: activities,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGamesChart(gameStats) {
+            const ctx = document.getElementById('gamesChart').getContext('2d');
+            
+            if (gamesChart) gamesChart.destroy();
+            gamesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Flappy BONK', 'BONK Clicker', 'BONK Runner'],
+                    datasets: [{
+                        data: [
+                            gameStats.flappyBird.totalPlays,
+                            gameStats.clicker.totalClicks,
+                            gameStats.dinoRunner.totalPlays
+                        ],
+                        backgroundColor: [
+                            '#6366f1',
+                            '#22c55e',
+                            '#f59e0b'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Kullanıcıları Yükle
+        async function loadUsers() {
+            try {
+                const data = await DATABASE.api.getAllData();
+                const users = Object.entries(data.users || {});
+                updateUserTable(users);
+            } catch (error) {
+                showNotification('Kullanıcı verisi yükleme hatası!', 'error');
+                console.error('Kullanıcı verisi yükleme hatası:', error);
+            }
+        }
+
+        // Kullanıcı Tablosunu Güncelle
+        function updateUserTable(users) {
+            const tbody = document.getElementById('userTable');
+            tbody.innerHTML = '';
+
+            users.forEach(([id, user]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${id}</td>
+                    <td>${(user.bonkBalance || 0).toLocaleString()} BONK</td>
+                    <td>${(user.referrals?.length || 0).toLocaleString()}</td>
+                    <td>${formatDate(user.lastPlayed || user.lastUpdated)}</td>
+                    <td>
+                        <span class="badge ${user.banned ? 'badge-danger' : 'badge-success'}">
+                            ${user.banned ? 'Yasaklı' : 'Aktif'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editUser('${id}')">
+                            ✏️ Düzenle
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="banUser('${id}')">
+                            🚫 ${user.banned ? 'Ban Kaldır' : 'Yasakla'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Toplu BONK Gönder
+        async function sendBulkBonk() {
+            const amount = parseInt(document.getElementById('bulkBonkAmount').value);
+            const target = document.getElementById('bulkBonkTarget').value;
+
+            if (!amount || amount <= 0) {
+                showNotification('Geçerli bir miktar girin!', 'error');
+                return;
+            }
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                let targetUsers = Object.entries(data.users || {});
+
+                // Hedef filtreleme
+                if (target === 'active') {
+                    const today = new Date().toISOString().split('T')[0];
+                    targetUsers = targetUsers.filter(([, user]) => 
+                        user.lastPlayed?.startsWith(today)
+                    );
+                } else if (target === 'referral') {
+                    targetUsers = targetUsers.filter(([, user]) => 
+                        user.referrals?.length > 0
+                    );
+                }
+
+                // BONK gönderme
+                targetUsers.forEach(([id, user]) => {
+                    user.bonkBalance = (user.bonkBalance || 0) + amount;
+                    data.users[id] = user;
+                });
+
+                await DATABASE.api.updateData(data);
+                showNotification('BONK gönderimi başarılı!', 'success');
+                hideModal('bulkBonkModal');
+                loadUsers();
+
+                // Log kaydet
+                addLog('info', `${targetUsers.length} kullanıcıya ${amount} BONK gönderildi`);
+            } catch (error) {
+                showNotification('BONK gönderimi başarısız!', 'error');
+                console.error('BONK gönderim hatası:', error);
+            }
+        }
+
+        // Kullanıcı Yasakla/Yasak Kaldır
+        async function banUser(userId) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                user.banned = !user.banned;
+                await DATABASE.users.updateUser(userId, user);
+                
+                showNotification(`Kullanıcı ${user.banned ? 'yasaklandı' : 'yasağı kaldırıldı'}!`, 'success');
+                loadUsers();
+
+                // Log kaydet
+                addLog('warning', `Kullanıcı ${userId} ${user.banned ? 'yasaklandı' : 'yasağı kaldırıldı'}`);
+            } catch (error) {
+                showNotification('İşlem başarısız!', 'error');
+                console.error('Kullanıcı yasaklama hatası:', error);
+            }
+        }
+
+        // Kullanıcıları Dışa Aktar
+        function exportUsers() {
+            DATABASE.api.getAllData().then(data => {
+                const users = Object.entries(data.users || {}).map(([id, user]) => ({
+                    id,
+                    bonkBalance: user.bonkBalance || 0,
+                    referrals: user.referrals?.length || 0,
+                    lastPlayed: user.lastPlayed || user.lastUpdated,
+                    banned: user.banned || false
+                }));
+
+                const csv = convertToCSV(users);
+                downloadCSV(csv, 'bonk_users.csv');
+                showNotification('Kullanıcılar dışa aktarıldı!', 'success');
+            }).catch(error => {
+                showNotification('Dışa aktarma başarısız!', 'error');
+                console.error('Dışa aktarma hatası:', error);
+            });
+        }
+
+        // Log Sistemi
+        function addLog(type, message) {
+            const log = {
+                type,
+                message,
+                timestamp: new Date().toISOString()
+            };
+
+            // Log'u localStorage'a kaydet
+            const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
+            logs.unshift(log);
+            localStorage.setItem('adminLogs', JSON.stringify(logs.slice(0, 1000)));
+
+            // Log ekranı açıksa güncelle
+            if (document.getElementById('logs').style.display !== 'none') {
+                loadLogs();
+            }
+        }
+
+        function loadLogs() {
+            const logs = JSON.parse(localStorage.getItem('adminLogs') || '[]');
+            const container = document.getElementById('logContainer');
+            container.innerHTML = '';
+
+            logs.forEach(log => {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${log.type}`;
+                entry.innerHTML = `
+                    <span class="log-time">${formatDate(log.timestamp)}</span>
+                    <p>${log.message}</p>
+                `;
+                container.appendChild(entry);
+            });
+        }
+
+        // Yardımcı Fonksiyonlar
+        function formatDate(dateString) {
+            if (!dateString) return 'Belirsiz';
+            const date = new Date(dateString);
+            return date.toLocaleString('tr-TR');
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function convertToCSV(objArray) {
+            const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+            let str = `${Object.keys(array[0]).join(',')}\\r\\n`;
+
+            for (let i = 0; i < array.length; i++) {
+                let line = '';
+                for (let index in array[i]) {
+                    if (line !== '') line += ',';
+                    line += array[i][index];
+                }
+                str += line + '\\r\\n';
+            }
+            return str;
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Sayfa Yüklendiğinde
+        window.onload = function() {
+            if (!checkAuth()) return;
+            
+            // Dashboard'ı göster
+            showSection('dashboard');
+            
+            // İlk log kaydı
+            addLog('info', 'Admin paneli başlatıldı');
+        };
+    </script>
+</body>
+</html>
