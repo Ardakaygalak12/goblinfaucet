@@ -8,18 +8,18 @@ const DATABASE = {
                 maxDuration: 180
             },
             systemSettings: {
-                minWithdrawAmount: 1000,
-                airdropStatus: 'active',
-                maintenanceMode: false,
+                minWithdrawAmount: 20 * 100, // 20 dolar minimum (cent cinsinden)
                 maxDailyEarnings: 5000,
+                maxDailyWithdrawals: 1, // Günde maksimum 1 çekim
                 referralBonus: 1000
-            },
-            securitySettings: {
-                maxFailedAttempts: 3,
-                blockDuration: 24, // hours
-                requireCaptcha: true,
-                fraudDetectionEnabled: true
             }
+        },
+        phantom: {
+            network: 'mainnet-beta',
+            rpcUrl: 'https://api.mainnet-beta.solana.com',
+            bonkMint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', // BONK token mint adresi
+            bonkDecimals: 5,
+            dollarPerBonk: 0.00001234 // BONK/USD kuru (örnek değer)
         }
     },
 
@@ -52,21 +52,14 @@ const DATABASE = {
                 shortlinks: [],
                 ptcAds: [],
                 tasks: [],
-                adminLogs: [],
-                reports: [],
-                fraudDetection: {
-                    suspiciousIPs: [],
-                    blockedUsers: [],
-                    activityLogs: []
-                },
+                withdrawals: {},
                 statistics: {
                     global: {
                         totalUsers: 0,
                         totalBonk: 0,
                         activeUsers: 0
                     },
-                    daily: {},
-                    earnings: {}
+                    daily: {}
                 }
             };
         },
@@ -88,135 +81,204 @@ const DATABASE = {
         }
     },
 
-    admin: {
-        async logAction(adminId, action, details) {
+    users: {
+        async getUser(userId) {
+            const data = await DATABASE.api.getAllData();
+            return data.users[userId] || null;
+        },
+
+        async createUser(userData) {
             try {
                 const data = await DATABASE.api.getAllData();
-                if (!data.adminLogs) data.adminLogs = [];
-
-                const logEntry = {
-                    id: Date.now().toString(),
-                    adminId,
-                    action,
-                    details,
-                    timestamp: new Date().toISOString(),
-                    ipAddress: details.ipAddress || 'unknown',
-                    userAgent: details.userAgent || 'unknown',
-                    success: details.success !== false
+                
+                const newUser = {
+                    userId: userData.userId,
+                    email: userData.email,
+                    phantomWallet: userData.phantomWallet,
+                    bonkBalance: 0,
+                    joinDate: new Date().toISOString(),
+                    lastActivity: new Date().toISOString(),
+                    earnings: {
+                        daily: {}
+                    },
+                    completedTasks: [],
+                    viewedAds: [],
+                    clickedLinks: []
                 };
 
-                data.adminLogs.push(logEntry);
-                if (data.adminLogs.length > 1000) {
-                    data.adminLogs = data.adminLogs.slice(-1000);
-                }
-
+                data.users[userData.userId] = newUser;
+                data.statistics.global.totalUsers++;
                 await DATABASE.api.updateData(data);
-                return logEntry;
+                return newUser;
             } catch (error) {
-                console.error('Admin log error:', error);
+                console.error('User creation error:', error);
                 return null;
             }
         },
 
-        async getActionLogs(filters = {}) {
+        async updateUserBalance(userId, amount) {
+            const data = await DATABASE.api.getAllData();
+            if (!data.users[userId]) return false;
+
+            data.users[userId].bonkBalance = (data.users[userId].bonkBalance || 0) + amount;
+            data.users[userId].lastActivity = new Date().toISOString();
+            data.statistics.global.totalBonk += amount;
+
+            await DATABASE.api.updateData(data);
+            return true;
+        },
+
+        async updatePhantomWallet(userId, walletAddress) {
+            const data = await DATABASE.api.getAllData();
+            if (!data.users[userId]) return false;
+
+            data.users[userId].phantomWallet = walletAddress;
+            await DATABASE.api.updateData(data);
+            return true;
+        }
+    },
+
+    phantom: {
+        async connectWallet() {
+            try {
+                if (!window.solana || !window.solana.isPhantom) {
+                    throw new Error('Phantom wallet is not installed!');
+                }
+
+                const response = await window.solana.connect();
+                return response.publicKey.toString();
+            } catch (error) {
+                console.error('Phantom connection error:', error);
+                throw error;
+            }
+        },
+
+        async initiateWithdrawal(userId, amountInDollars) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                if (!user) throw new Error('User not found');
+
+                const today = new Date().toISOString().split('T')[0];
+                const withdrawalCount = await this.getDailyWithdrawalCount(userId, today);
+                if (withdrawalCount >= DATABASE.config.adminSettings.systemSettings.maxDailyWithdrawals) {
+                    throw new Error('Daily withdrawal limit reached');
+                }
+
+                if (amountInDollars < (DATABASE.config.adminSettings.systemSettings.minWithdrawAmount / 100)) {
+                    throw new Error(`Minimum withdrawal amount is $${DATABASE.config.adminSettings.systemSettings.minWithdrawAmount / 100}`);
+                }
+
+                const bonkAmount = Math.floor(amountInDollars / DATABASE.config.phantom.dollarPerBonk);
+
+                if (user.bonkBalance < bonkAmount) {
+                    throw new Error('Insufficient balance');
+                }
+
+                if (!user.phantomWallet) {
+                    throw new Error('No Phantom wallet connected');
+                }
+
+                const connection = new window.solanaWeb3.Connection(
+                    DATABASE.config.phantom.rpcUrl,
+                    'confirmed'
+                );
+
+                const transaction = new window.solanaWeb3.Transaction();
+                
+                // BONK token transfer talimatı
+                const transferInstruction = window.splToken.Token.createTransferInstruction(
+                    new window.solanaWeb3.PublicKey(DATABASE.config.phantom.bonkMint),
+                    window.solana.publicKey,
+                    new window.solanaWeb3.PublicKey(user.phantomWallet),
+                    window.solana.publicKey,
+                    [],
+                    bonkAmount * Math.pow(10, DATABASE.config.phantom.bonkDecimals)
+                );
+
+                transaction.add(transferInstruction);
+                transaction.feePayer = window.solana.publicKey;
+                transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+
+                // Withdrawal kaydı oluştur
+                const withdrawalId = `WD_${Date.now()}_${userId}`;
+                await this.saveWithdrawalRecord(userId, {
+                    withdrawalId,
+                    amountUsd: amountInDollars,
+                    amountBonk: bonkAmount,
+                    walletAddress: user.phantomWallet,
+                    status: 'pending',
+                    date: today,
+                    timestamp: new Date().toISOString()
+                });
+
+                return {
+                    transaction,
+                    withdrawalId,
+                    bonkAmount
+                };
+            } catch (error) {
+                console.error('Withdrawal initiation error:', error);
+                throw error;
+            }
+        },
+
+        async completeWithdrawal(userId, withdrawalId, signature) {
             try {
                 const data = await DATABASE.api.getAllData();
-                let logs = data.adminLogs || [];
+                const withdrawal = data.withdrawals[userId]?.find(w => w.withdrawalId === withdrawalId);
+                
+                if (!withdrawal) throw new Error('Withdrawal not found');
 
-                if (filters.adminId) {
-                    logs = logs.filter(log => log.adminId === filters.adminId);
-                }
-                if (filters.action) {
-                    logs = logs.filter(log => log.action === filters.action);
-                }
-                if (filters.dateRange) {
-                    logs = logs.filter(log => {
-                        const logDate = new Date(log.timestamp);
-                        return logDate >= filters.dateRange.start && 
-                               logDate <= filters.dateRange.end;
-                    });
-                }
-                if (filters.success !== undefined) {
-                    logs = logs.filter(log => log.success === filters.success);
-                }
+                const connection = new window.solanaWeb3.Connection(
+                    DATABASE.config.phantom.rpcUrl,
+                    'confirmed'
+                );
+                const status = await connection.getSignatureStatus(signature);
 
-                return logs.sort((a, b) => 
-                    new Date(b.timestamp) - new Date(a.timestamp));
+                if (status?.value?.confirmationStatus === 'confirmed') {
+                    withdrawal.status = 'completed';
+                    withdrawal.signature = signature;
+                    withdrawal.completedAt = new Date().toISOString();
+
+                    await DATABASE.users.updateUserBalance(userId, -withdrawal.amountBonk);
+                    await DATABASE.api.updateData(data);
+                    return true;
+                } else {
+                    throw new Error('Transaction failed');
+                }
             } catch (error) {
-                console.error('Action logs fetch error:', error);
-                return [];
+                console.error('Withdrawal completion error:', error);
+                throw error;
             }
+        },
+
+        async getDailyWithdrawalCount(userId, date) {
+            const data = await DATABASE.api.getAllData();
+            return (data.withdrawals[userId] || [])
+                .filter(w => w.date === date && w.status === 'completed')
+                .length;
+        },
+
+        async saveWithdrawalRecord(userId, record) {
+            const data = await DATABASE.api.getAllData();
+            if (!data.withdrawals[userId]) {
+                data.withdrawals[userId] = [];
+            }
+            data.withdrawals[userId].push(record);
+            await DATABASE.api.updateData(data);
+        },
+
+        async getWithdrawalHistory(userId) {
+            const data = await DATABASE.api.getAllData();
+            return data.withdrawals[userId] || [];
         }
     },
 
     contentManagement: {
-        async createShortlink(adminId, shortlinkData) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.shortlinks) data.shortlinks = [];
-
-                const newShortlink = {
-                    id: Date.now().toString(),
-                    title: shortlinkData.title,
-                    url: shortlinkData.url,
-                    bonkReward: parseInt(shortlinkData.bonkReward),
-                    status: 'active',
-                    createdAt: new Date().toISOString(),
-                    createdBy: adminId,
-                    settings: {
-                        expirationDate: shortlinkData.expirationDate || null,
-                        geoRestrictions: shortlinkData.geoRestrictions || [],
-                        requireCaptcha: shortlinkData.requireCaptcha || false,
-                        mobileSupport: {
-                            allowed: shortlinkData.mobileSupport?.allowed !== false,
-                            platforms: shortlinkData.mobileSupport?.platforms || ['android', 'ios']
-                        },
-                        customRedirectDelay: shortlinkData.customRedirectDelay || 0,
-                        vpnBlocked: shortlinkData.vpnBlocked || false
-                    },
-                    stats: {
-                        totalClicks: 0,
-                        uniqueClicks: 0,
-                        bonkPaid: 0,
-                        completionRate: 0,
-                        failedAttempts: 0,
-                        averageCompletionTime: 0,
-                        deviceStats: {
-                            desktop: 0,
-                            mobile: 0,
-                            tablet: 0
-                        },
-                        dailyStats: {}
-                    }
-                };
-
-                data.shortlinks.push(newShortlink);
-                await DATABASE.api.updateData(data);
-                await DATABASE.admin.logAction(adminId, 'shortlink_created', {
-                    shortlinkId: newShortlink.id,
-                    title: shortlinkData.title,
-                    settings: newShortlink.settings
-                });
-
-                return newShortlink;
-            } catch (error) {
-                console.error('Shortlink creation error:', error);
-                return null;
-            }
-        },
-
         async createPtcAd(adminId, adData) {
             try {
                 const data = await DATABASE.api.getAllData();
-                if (!data.ptcAds) data.ptcAds = [];
-
-                // Validate view duration
-                const viewDuration = parseInt(adData.viewDuration) || 15;
-                if (viewDuration < DATABASE.config.adminSettings.ptcAdLimits.minDuration || 
-                    viewDuration > DATABASE.config.adminSettings.ptcAdLimits.maxDuration) {
-                    throw new Error(`View duration must be between ${DATABASE.config.adminSettings.ptcAdLimits.minDuration} and ${DATABASE.config.adminSettings.ptcAdLimits.maxDuration} seconds`);
-                }
-
+                
                 const newAd = {
                     id: Date.now().toString(),
                     title: adData.title,
@@ -226,57 +288,18 @@ const DATABASE = {
                     createdAt: new Date().toISOString(),
                     createdBy: adminId,
                     settings: {
-                        viewDuration: viewDuration,
-                        dailyLimit: parseInt(adData.dailyLimit) || 15,
-                        requireFocus: adData.requireFocus !== false,
-                        expirationDate: adData.expirationDate || null,
-                        geoTargeting: adData.geoTargeting || [],
-                        scheduleSettings: {
-                            startDate: adData.scheduleSettings?.startDate || null,
-                            endDate: adData.scheduleSettings?.endDate || null,
-                            dailyStartTime: adData.scheduleSettings?.dailyStartTime || null,
-                            dailyEndTime: adData.scheduleSettings?.dailyEndTime || null
-                        },
-                        mobileSupport: {
-                            allowed: adData.mobileSupport?.allowed !== false,
-                            platforms: adData.mobileSupport?.platforms || ['android', 'ios']
-                        },
-                        vpnBlocked: adData.vpnBlocked || false,
-                        customBrowser: adData.customBrowser || null
-                    },
-                    fraudPrevention: {
-                        maxAttemptsPerIP: adData.fraudPrevention?.maxAttemptsPerIP || 5,
-                        requireCaptcha: adData.fraudPrevention?.requireCaptcha || false,
-                        blockProxy: adData.fraudPrevention?.blockProxy || true
+                        viewDuration: parseInt(adData.viewDuration) || 15,
+                        dailyLimit: parseInt(adData.dailyLimit) || 15
                     },
                     stats: {
                         totalViews: 0,
                         uniqueViews: 0,
-                        bonkPaid: 0,
-                        completionRate: 0,
-                        failedAttempts: 0,
-                        averageViewTime: 0,
-                        deviceStats: {
-                            desktop: 0,
-                            mobile: 0,
-                            tablet: 0
-                        },
-                        dailyStats: {},
-                        revenueStats: {
-                            daily: {},
-                            total: 0
-                        }
+                        bonkPaid: 0
                     }
                 };
 
                 data.ptcAds.push(newAd);
                 await DATABASE.api.updateData(data);
-                await DATABASE.admin.logAction(adminId, 'ptc_ad_created', {
-                    adId: newAd.id,
-                    title: adData.title,
-                    settings: newAd.settings
-                });
-
                 return newAd;
             } catch (error) {
                 console.error('PTC ad creation error:', error);
@@ -284,392 +307,283 @@ const DATABASE = {
             }
         },
 
-        async updateContentStatus(adminId, contentType, contentId, updates) {
+        async createShortlink(adminId, linkData) {
             try {
                 const data = await DATABASE.api.getAllData();
-                const contentArray = data[contentType];
-                const index = contentArray.findIndex(item => item.id === contentId);
-
-                if (index === -1) throw new Error(`${contentType} not found`);
-
-                const oldStatus = contentArray[index].status;
-                const updatedContent = {
-                    ...contentArray[index],
-                    status: updates.status || oldStatus,
-                    settings: {
-                        ...contentArray[index].settings,
-                        ...updates.settings
-                    },
-                    lastUpdated: {
-                        timestamp: new Date().toISOString(),
-                        updatedBy: adminId,
-                        changes: {
-                            oldStatus,
-                            newStatus: updates.status,
-                            updatedSettings: updates.settings
-                        }
-                    }
-                };
-
-                contentArray[index] = updatedContent;
-                await DATABASE.api.updateData(data);
-                await DATABASE.admin.logAction(adminId, `${contentType}_updated`, {
-                    contentId,
-                    changes: updatedContent.lastUpdated.changes
-                });
-
-                return updatedContent;
-            } catch (error) {
-                console.error('Content update error:', error);
-                return null;
-            }
-        },
-
-        async getContentAnalytics(contentType, contentId, dateRange = null) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const content = data[contentType].find(item => item.id === contentId);
                 
-                if (!content) throw new Error(`${contentType} not found`);
-
-                let analytics = {
-                    general: content.stats,
-                    performance: {
-                        completionRate: content.stats.completionRate,
-                        averageTime: contentType === 'ptcAds' ? 
-                            content.stats.averageViewTime : 
-                            content.stats.averageCompletionTime,
-                        deviceDistribution: content.stats.deviceStats
-                    },
-                    earnings: {
-                        total: content.stats.bonkPaid,
-                        daily: {}
-                    }
-                };
-
-                // Process daily stats within date range
-                if (dateRange) {
-                    const { start, end } = dateRange;
-                    Object.entries(content.stats.dailyStats).forEach(([date, stats]) => {
-                        const statDate = new Date(date);
-                        if (statDate >= start && statDate <= end) {
-                            analytics.earnings.daily[date] = stats;
-                        }
-                    });
-                } else {
-                    analytics.earnings.daily = content.stats.dailyStats;
-                }
-
-                return analytics;
-            } catch (error) {
-                console.error('Content analytics error:', error);
-                return null;
-            }
-        }
-    },
-
-    fraudPrevention: {
-        async detectSuspiciousActivity(userId, activityType, details) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.fraudDetection) data.fraudDetection = {
-                    suspiciousIPs: [],
-                    blockedUsers: [],
-                    activityLogs: []
-                };
-
-                // Check for rapid activity
-                const recentActivities = data.fraudDetection.activityLogs
-                    .filter(log => log.userId === userId && 
-                            log.timestamp > Date.now() - 3600000); // Last hour
-
-                if (recentActivities.length > 50) { // More than 50 actions per hour
-                    await this.flagUser(userId, 'rapid_activity', details);
-                    return false;
-                }
-
-                // Check for multiple IPs
-                const uniqueIPs = new Set(recentActivities.map(log => log.ipAddress));
-                if (uniqueIPs.size > 3) { // More than 3 IPs in an hour
-                    await this.flagUser(userId, 'multiple_ips', details);
-                    return false;
-                }
-
-                // Log activity
-                data.fraudDetection.activityLogs.push({
-                    userId,
-                    activityType,
-                    timestamp: Date.now(),
-                    ipAddress: details.ipAddress,
-                    deviceInfo: details.deviceInfo
-                });
-
-                await DATABASE.api.updateData(data);
-                return true;
-            } catch (error) {
-                console.error('Fraud detection error:', error);
-                return true; // Allow activity if detection fails
-            }
-        },
-        fraudPrevention: {
-        async flagUser(userId, reason, details) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const timestamp = new Date().toISOString();
-
-                if (!data.fraudDetection.flaggedUsers) {
-                    data.fraudDetection.flaggedUsers = [];
-                }
-
-                data.fraudDetection.flaggedUsers.push({
-                    userId,
-                    reason,
-                    details,
-                    timestamp,
-                    status: 'flagged',
-                    reviewedBy: null,
-                    reviewNotes: null
-                });
-
-                await DATABASE.api.updateData(data);
-
-                // Log the flag action
-                await DATABASE.admin.logAction('system', 'user_flagged', {
-                    userId,
-                    reason,
-                    details,
-                    timestamp
-                });
-
-                return true;
-            } catch (error) {
-                console.error('User flag error:', error);
-                return false;
-            }
-        },
-
-        async reviewFlaggedUser(adminId, userId, decision, notes) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const flaggedUser = data.fraudDetection.flaggedUsers
-                    .find(u => u.userId === userId && u.status === 'flagged');
-
-                if (!flaggedUser) {
-                    throw new Error('Flagged user not found');
-                }
-
-                flaggedUser.status = decision;
-                flaggedUser.reviewedBy = adminId;
-                flaggedUser.reviewNotes = notes;
-                flaggedUser.reviewedAt = new Date().toISOString();
-
-                if (decision === 'blocked') {
-                    // Add to blocked users list
-                    if (!data.fraudDetection.blockedUsers) {
-                        data.fraudDetection.blockedUsers = [];
-                    }
-                    data.fraudDetection.blockedUsers.push({
-                        userId,
-                        reason: flaggedUser.reason,
-                        blockedAt: new Date().toISOString(),
-                        blockedBy: adminId,
-                        notes
-                    });
-                }
-
-                await DATABASE.api.updateData(data);
-                return true;
-            } catch (error) {
-                console.error('Flag review error:', error);
-                return false;
-            }
-        },
-
-        async checkUserStatus(userId) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const blockedUser = data.fraudDetection.blockedUsers
-                    ?.find(u => u.userId === userId);
-                const flaggedUser = data.fraudDetection.flaggedUsers
-                    ?.find(u => u.userId === userId && u.status === 'flagged');
-
-                return {
-                    isBlocked: !!blockedUser,
-                    isFlagged: !!flaggedUser,
-                    details: blockedUser || flaggedUser || null
-                };
-            } catch (error) {
-                console.error('User status check error:', error);
-                return {
-                    isBlocked: false,
-                    isFlagged: false,
-                    details: null
-                };
-            }
-        }
-    },
-
-    reporting: {
-        async generateDailyReport(date = new Date()) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const dateStr = date.toISOString().split('T')[0];
-                
-                // Calculate daily statistics
-                const dailyStats = {
-                    date: dateStr,
-                    users: {
-                        total: Object.keys(data.users || {}).length,
-                        new: Object.values(data.users || {})
-                            .filter(u => u.joinDate?.startsWith(dateStr)).length,
-                        active: Object.values(data.users || {})
-                            .filter(u => u.lastActivity?.startsWith(dateStr)).length
-                    },
-                    earnings: {
-                        total: 0,
-                        bySource: {
-                            ptcAds: 0,
-                            shortlinks: 0,
-                            tasks: 0,
-                            referrals: 0
-                        }
-                    },
-                    content: {
-                        ptcAds: {
-                            total: data.ptcAds?.length || 0,
-                            active: data.ptcAds?.filter(a => a.status === 'active').length || 0,
-                            views: 0,
-                            earnings: 0
-                        },
-                        shortlinks: {
-                            total: data.shortlinks?.length || 0,
-                            active: data.shortlinks?.filter(s => s.status === 'active').length || 0,
-                            clicks: 0,
-                            earnings: 0
-                        },
-                        tasks: {
-                            total: data.tasks?.length || 0,
-                            active: data.tasks?.filter(t => t.status === 'active').length || 0,
-                            completions: 0,
-                            earnings: 0
-                        }
-                    },
-                    fraud: {
-                        flaggedUsers: data.fraudDetection?.flaggedUsers
-                            ?.filter(f => f.timestamp.startsWith(dateStr)).length || 0,
-                        blockedUsers: data.fraudDetection?.blockedUsers
-                            ?.filter(b => b.blockedAt.startsWith(dateStr)).length || 0,
-                        suspiciousActivities: data.fraudDetection?.activityLogs
-                            ?.filter(l => new Date(l.timestamp).toISOString().startsWith(dateStr)).length || 0
-                    }
-                };
-
-                // Calculate earnings
-                Object.values(data.users || {}).forEach(user => {
-                    const userDailyEarnings = user.earnings?.daily?.[dateStr] || {};
-                    Object.entries(userDailyEarnings).forEach(([source, amount]) => {
-                        dailyStats.earnings.total += amount;
-                        dailyStats.earnings.bySource[source] = 
-                            (dailyStats.earnings.bySource[source] || 0) + amount;
-                    });
-                });
-
-                // Store report
-                if (!data.reports) data.reports = {};
-                if (!data.reports.daily) data.reports.daily = {};
-                data.reports.daily[dateStr] = dailyStats;
-
-                await DATABASE.api.updateData(data);
-                return dailyStats;
-            } catch (error) {
-                console.error('Daily report generation error:', error);
-                return null;
-            }
-        },
-
-        async getReports(type, dateRange) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                const reports = data.reports?.[type] || {};
-
-                if (dateRange) {
-                    const { start, end } = dateRange;
-                    const filteredReports = {};
-                    Object.entries(reports).forEach(([date, report]) => {
-                        if (date >= start && date <= end) {
-                            filteredReports[date] = report;
-                        }
-                    });
-                    return filteredReports;
-                }
-
-                return reports;
-            } catch (error) {
-                console.error('Reports fetch error:', error);
-                return null;
-            }
-        }
-    },
-
-    notifications: {
-        async createNotification(type, message, targetUsers = null) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                if (!data.notifications) data.notifications = [];
-
-                const notification = {
+                const newLink = {
                     id: Date.now().toString(),
-                    type,
-                    message,
-                    targetUsers,
-                    createdAt: new Date().toISOString(),
+                    title: linkData.title,
+                    url: linkData.url,
+                    bonkReward: parseInt(linkData.bonkReward),
                     status: 'active',
-                    readBy: []
+                    createdAt: new Date().toISOString(),
+                    createdBy: adminId,
+                    settings: {
+                        minViewTime: parseInt(linkData.minViewTime) || 10
+                    },
+                    stats: {
+                        totalClicks: 0,
+                        uniqueClicks: 0,
+                        bonkPaid: 0
+                    }
                 };
 
-                data.notifications.push(notification);
+                data.shortlinks.push(newLink);
                 await DATABASE.api.updateData(data);
-                return notification;
+                return newLink;
             } catch (error) {
-                console.error('Notification creation error:', error);
+                console.error('Shortlink creation error:', error);
                 return null;
             }
         },
 
-        async getUserNotifications(userId) {
+        async createTask(adminId, taskData) {
             try {
                 const data = await DATABASE.api.getAllData();
-                return (data.notifications || [])
-                    .filter(n => !n.targetUsers || n.targetUsers.includes(userId))
-                    .filter(n => n.status === 'active')
-                    .filter(n => !n.readBy.includes(userId));
+                
+                const newTask = {
+                    id: Date.now().toString(),
+                    title: taskData.title,
+                    description: taskData.description,
+                    bonkReward: parseInt(taskData.bonkReward),
+                    type: taskData.type,
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    createdBy: adminId,
+                    settings: {
+                        proofRequired: taskData.proofRequired || false,
+                        requirements: taskData.requirements || []
+                    },
+                    stats: {
+                        totalCompletions: 0,
+                        bonkPaid: 0
+                    }
+                };
+
+                data.tasks.push(newTask);
+                await DATABASE.api.updateData(data);
+                return newTask;
             } catch (error) {
-                console.error('User notifications fetch error:', error);
+                console.error('Task creation error:', error);
+                return null;
+            }
+        }
+    },
+
+    activity: {
+        async recordPtcView(userId, adId) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                const ad = data.ptcAds.find(a => a.id === adId);
+                if (!ad || ad.status !== 'active') return false;
+
+                const user = data.users[userId];
+                if (!user) return false;
+
+                const today = new Date().toISOString().split('T')[0];
+                if (!user.viewedAds) user.viewedAds = [];
+                
+                const todayViews = user.viewedAds.filter(v => v.date === today).length;
+                if (todayViews >= ad.settings.dailyLimit) return false;
+
+                user.viewedAds.push({
+                    adId,
+                    date: today,
+                    timestamp: new Date().toISOString()
+                });
+
+                ad.stats.totalViews++;
+                if (!user.viewedAds.some(v => v.adId === adId && v.date !== today)) {
+                    ad.stats.uniqueViews++;
+                }
+                ad.stats.bonkPaid += ad.bonkReward;
+
+                await DATABASE.users.updateUserBalance(userId, ad.bonkReward);
+                await DATABASE.api.updateData(data);
+                return true;
+            } catch (error) {
+                console.error('PTC view record error:', error);
+                return false;
+            }
+        },
+
+        async recordShortlinkClick(userId, linkId) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                const link = data.shortlinks.find(l => l.id === linkId);
+                if (!link || link.status !== 'active') return false;
+
+                const user = data.users[userId];
+                if (!user) return false;
+
+                if (!user.clickedLinks)
+                    user.clickedLinks = [];
+                const today = new Date().toISOString().split('T')[0];
+
+                // Record click
+                user.clickedLinks.push({
+                    linkId,
+                    date: today,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Update link stats
+                link.stats.totalClicks++;
+                if (!user.clickedLinks.some(c => c.linkId === linkId && c.date !== today)) {
+                    link.stats.uniqueClicks++;
+                }
+                link.stats.bonkPaid += link.bonkReward;
+
+                // Update user balance
+                await DATABASE.users.updateUserBalance(userId, link.bonkReward);
+                await DATABASE.api.updateData(data);
+                return true;
+            } catch (error) {
+                console.error('Shortlink click record error:', error);
+                return false;
+            }
+        },
+
+        async recordTaskCompletion(userId, taskId, proof = null) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                const task = data.tasks.find(t => t.id === taskId);
+                if (!task || task.status !== 'active') return false;
+
+                const user = data.users[userId];
+                if (!user) return false;
+
+                if (!user.completedTasks) user.completedTasks = [];
+                if (user.completedTasks.some(t => t.taskId === taskId)) return false;
+
+                // Record completion
+                user.completedTasks.push({
+                    taskId,
+                    proof,
+                    date: new Date().toISOString()
+                });
+
+                // Update task stats
+                task.stats.totalCompletions++;
+                task.stats.bonkPaid += task.bonkReward;
+
+                // Update user balance
+                await DATABASE.users.updateUserBalance(userId, task.bonkReward);
+                await DATABASE.api.updateData(data);
+                return true;
+            } catch (error) {
+                console.error('Task completion record error:', error);
+                return false;
+            }
+        }
+    },
+
+    earnings: {
+        async getDailyEarnings(userId) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                if (!user) return 0;
+
+                const today = new Date().toISOString().split('T')[0];
+                return user.earnings?.daily?.[today] || 0;
+            } catch (error) {
+                console.error('Daily earnings check error:', error);
+                return 0;
+            }
+        },
+
+        async getEarningsHistory(userId) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                if (!user) return [];
+
+                const history = [];
+                for (const [date, amount] of Object.entries(user.earnings?.daily || {})) {
+                    history.push({
+                        date,
+                        amount,
+                        dollarValue: amount * DATABASE.config.phantom.dollarPerBonk
+                    });
+                }
+
+                return history.sort((a, b) => new Date(b.date) - new Date(a.date));
+            } catch (error) {
+                console.error('Earnings history error:', error);
                 return [];
             }
         },
 
-        async markNotificationRead(userId, notificationId) {
+        async checkEarningLimit(userId) {
+            try {
+                const dailyEarnings = await this.getDailyEarnings(userId);
+                return dailyEarnings < DATABASE.config.adminSettings.systemSettings.maxDailyEarnings;
+            } catch (error) {
+                console.error('Earning limit check error:', error);
+                return false;
+            }
+        }
+    },
+
+    stats: {
+        async updateGlobalStats() {
             try {
                 const data = await DATABASE.api.getAllData();
-                const notification = data.notifications
-                    ?.find(n => n.id === notificationId);
+                const today = new Date().toISOString().split('T')[0];
 
-                if (notification && !notification.readBy.includes(userId)) {
-                    notification.readBy.push(userId);
-                    await DATABASE.api.updateData(data);
+                // Calculate active users
+                const activeUsers = Object.values(data.users).filter(user => {
+                    const lastActivity = new Date(user.lastActivity);
+                    const now = new Date();
+                    const diffHours = (now - lastActivity) / (1000 * 60 * 60);
+                    return diffHours <= 24;
+                }).length;
+
+                // Update global stats
+                data.statistics.global.activeUsers = activeUsers;
+                
+                // Update daily stats
+                if (!data.statistics.daily[today]) {
+                    data.statistics.daily[today] = {
+                        totalEarnings: 0,
+                        activeUsers: 0,
+                        completedTasks: 0,
+                        ptcViews: 0,
+                        shortlinkClicks: 0
+                    };
                 }
 
-                return true;
+                data.statistics.daily[today].activeUsers = activeUsers;
+
+                await DATABASE.api.updateData(data);
+                return data.statistics;
             } catch (error) {
-                console.error('Notification mark read error:', error);
-                return false;
+                console.error('Stats update error:', error);
+                return null;
+            }
+        },
+
+        async getUserStats(userId) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                if (!user) return null;
+
+                return {
+                    totalEarned: user.bonkBalance,
+                    completedTasks: user.completedTasks?.length || 0,
+                    viewedAds: user.viewedAds?.length || 0,
+                    clickedLinks: user.clickedLinks?.length || 0,
+                    dollarValue: user.bonkBalance * DATABASE.config.phantom.dollarPerBonk
+                };
+            } catch (error) {
+                console.error('User stats error:', error);
+                return null;
             }
         }
     }
 };
 
-// Export the database object for module systems
+// Node.js için export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = DATABASE;
 }
