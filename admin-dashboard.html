@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BONK Coin Advanced Admin Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
-    <script src="database.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="database.js"></script> 
     <style>
         :root {
             --primary-color: #6366F1;
-            --secondary-color: #8B5CF6;
+            --secondary-color: #8B5CF6; 
             --bg-dark: #0F172A;
             --card-bg: #1E293B;
             --text-light: #F8FAFC;
@@ -21,348 +21,389 @@
             color: var(--text-light);
             font-family: 'Inter', sans-serif;
         }
-
-        .sidebar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 280px;
-            transition: width 0.3s ease;
-            overflow-x: hidden;
-        }
-
-        .content-wrapper {
-            margin-left: 280px;
-            transition: margin-left 0.3s ease;
-        }
-
-        .dashboard-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .live-indicator {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
     </style>
 </head>
+
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar p-6 shadow-2xl z-50">
-        <div class="mb-10 text-center">
-            <img src="https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-logo.png" alt="BONK Admin" class="w-24 mx-auto mb-4">
-            <h1 class="text-2xl font-bold text-white">BONK Admin Panel</h1>
+    <!-- Main Content -->
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 p-4 bg-gradient-to-br from-primary-color to-secondary-color min-h-screen">
+            <div class="mb-8 text-center">
+                <img src="https://raw.githubusercontent.com/bonk-coin/brand-assets/main/bonk-logo.png" alt="BONK Admin" class="w-24 mx-auto mb-4">
+                <h1 class="text-2xl font-bold text-white">BONK Admin</h1>
+            </div>
+
+            <nav>
+                <ul>
+                    <li class="mb-2">
+                        <a href="#dashboard" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                            <i class="mr-3">📊</i> Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#users" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                            <i class="mr-3">👥</i> Users
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#transactions" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                            <i class="mr-3">💰</i> Transactions
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#games" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                            <i class="mr-3">🎮</i> Games
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#settings" class="flex items-center p-3 rounded hover:bg-white/10 transition">
+                            <i class="mr-3">⚙️</i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
-        <nav>
-            <ul>
-                <li class="mb-2">
-                    <a href="#dashboard" class="flex items-center p-3 rounded hover:bg-white/10 transition">
-                        <i class="mr-3">📊</i> Gösterge Paneli
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#users" class="flex items-center p-3 rounded hover:bg-white/10 transition">
-                        <i class="mr-3">👥</i> Kullanıcı Yönetimi
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#transactions" class="flex items-center p-3 rounded hover:bg-white/10 transition">
-                        <i class="mr-3">💰</i> İşlemler
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#games" class="flex items-center p-3 rounded hover:bg-white/10 transition">
-                        <i class="mr-3">🎮</i> Oyun İstatistikleri
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#system" class="flex items-center p-3 rounded hover:bg-white/10 transition">
-                        <i class="mr-3">⚙️</i> Sistem Ayarları
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </div>
+        <!-- Content Area -->
+        <div class="flex-grow p-6">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
 
-    <!-- Main Content -->
-    <div class="content-wrapper p-10">
-        <!-- Real-time Dashboard -->
-        <section id="dashboard" class="grid grid-cols-4 gap-6">
-            <div class="dashboard-card p-6 rounded-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl">Toplam Kullanıcı</h3>
-                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
-                </div>
-                <p class="text-4xl font-bold text-blue-400" id="total-users">0</p>
-            </div>
-            <div class="dashboard-card p-6 rounded-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl">Toplam BONK</h3>
-                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
-                </div>
-                <p class="text-4xl font-bold text-green-400" id="total-bonk">0</p>
-            </div>
-            <div class="dashboard-card p-6 rounded-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl">Aktif Oyuncular</h3>
-                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
-                </div>
-                <p class="text-4xl font-bold text-purple-400" id="active-players">0</p>
-            </div>
-            <div class="dashboard-card p-6 rounded-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl">Toplam Referans</h3>
-                    <span class="live-indicator h-3 w-3 bg-green-500 rounded-full"></span>
-                </div>
-                <p class="text-4xl font-bold text-red-400" id="total-referrals">0</p>
-            </div>
-        </section>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- KPI Cards -->
+                    <div class="p-4 rounded bg-card-bg shadow">
+                        <p class="text-sm text-secondary-color mb-2">Total Users</p>
+                        <p class="text-3xl font-bold" id="totalUsers">0</p>
+                    </div>
 
-        <!-- Detaylı İstatistikler -->
-        <section class="mt-10 grid grid-cols-2 gap-6">
-            <!-- Oyun İstatistikleri -->
-            <div class="dashboard-card p-6 rounded-lg">
-                <h3 class="text-2xl mb-6">Oyun İstatistikleri</h3>
-                <div id="game-stats">
-                    <div class="mb-4">
-                        <h4 class="text-lg">Flappy BONK</h4>
-                        <div class="bg-gray-800 rounded-full h-2 mt-2">
-                            <div class="bg-blue-500 h-2 rounded-full" id="flappy-progress" style="width: 0%"></div>
-                        </div>
-                        <p class="text-sm mt-2" id="flappy-stats">Toplam Oyun: 0 | En Yüksek Skor: 0</p>
+                    <div class="p-4 rounded bg-card-bg shadow">
+                        <p class="text-sm text-secondary-color mb-2">Total BONK</p>
+                        <p class="text-3xl font-bold" id="totalBonk">0</p>
                     </div>
-                    <div class="mb-4">
-                        <h4 class="text-lg">BONK Clicker</h4>
-                        <div class="bg-gray-800 rounded-full h-2 mt-2">
-                            <div class="bg-green-500 h-2 rounded-full" id="clicker-progress" style="width: 0%"></div>
-                        </div>
-                        <p class="text-sm mt-2" id="clicker-stats">Toplam Tıklama: 0 | Aktif Kullanıcı: 0</p>
+
+                    <div class="p-4 rounded bg-card-bg shadow">
+                        <p class="text-sm text-secondary-color mb-2">BONK Price</p>
+                        <p class="text-3xl font-bold">$<span id="bonkPrice">0.00</span></p>
                     </div>
-                    <div>
-                        <h4 class="text-lg">BONK Dino</h4>
-                        <div class="bg-gray-800 rounded-full h-2 mt-2">
-                            <div class="bg-purple-500 h-2 rounded-full" id="dino-progress" style="width: 0%"></div>
-                        </div>
-                        <p class="text-sm mt-2" id="dino-stats">Toplam Oyun: 0 | En Yüksek Skor: 0</p>
+
+                    <div class="p-4 rounded bg-card-bg shadow">
+                        <p class="text-sm text-secondary-color mb-2">Transactions (24h)</p>
+                        <p class="text-3xl font-bold" id="dailyTransactions">0</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Liderlik Tablosu -->
-            <div class="dashboard-card p-6 rounded-lg">
-                <h3 class="text-2xl mb-6">En İyi Referansçılar</h3>
-                <table class="w-full" id="top-referrers">
-                    <thead>
-                        <tr class="border-b border-gray-700">
-                            <th class="py-2 text-left">Kullanıcı</th>
-                            <th class="py-2 text-right">Referans Sayısı</th>
-                        </tr>
-                    </thead>
-                    <tbody id="referrer-list">
-                        <!-- Dinamik olarak doldurulacak -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                <!-- User Analytics -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4">User Analytics</h3>
 
-        <!-- Kullanıcı Yönetimi -->
-        <section id="users" class="mt-10">
-            <h2 class="text-2xl mb-6">Kullanıcı Yönetimi</h2>
-            <div class="dashboard-card p-6 rounded-lg">
-                <div class="flex mb-4">
-                    <input type="text" placeholder="Kullanıcı Ara" id="user-search" class="flex-1 p-2 bg-gray-800 rounded mr-4">
-                    <button onclick="searchUsers()" class="bg-blue-600 px-4 py-2 rounded">Ara</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- New Users Chart -->
+                        <div class="bg-card-bg rounded shadow">
+                            <div class="p-4 border-b border-gray-700">
+                                <h4 class="font-semibold">New Users</h4>
+                            </div>
+                            <div class="p-4">
+                                <canvas id="newUsersChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- User Activity Chart -->
+                        <div class="bg-card-bg rounded shadow">
+                            <div class="p-4 border-b border-gray-700">
+                                <h4 class="font-semibold">User Activity</h4>
+                            </div>
+                            <div class="p-4">
+                                <canvas id="userActivityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full" id="user-table">
+
+                <!-- Recent Activity -->
+                <div class="mt-8 overflow-auto">
+                    <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
+                    
+                    <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-700">
-                                <th class="p-3 text-left">Kullanıcı ID</th>
-                                <th class="p-3 text-left">BONK Bakiyesi</th>
-                                <th class="p-3 text-left">Katılım Tarihi</th>
-                                <th class="p-3 text-left">İşlemler</th>
+                            <tr class="text-sm text-secondary-color border-b border-gray-700">
+                                <th class="p-3 text-left">User</th>
+                                <th class="p-3 text-left">Activity</th>
+                                <th class="p-3 text-left">Time</th>
                             </tr>
                         </thead>
-                        <tbody id="user-list">
-                            <!-- Dinamik olarak doldurulacak -->
+                        <tbody id="recentActivity">
+                            <!-- Activity rows will be populated here -->
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Users</h2>
+
+                <!-- User Management Controls -->
+                <div class="mb-4">
+                    <input type="text" id="userSearch" placeholder="Search users..." class="px-4 py-2 rounded bg-card-bg border border-gray-700 mr-2">
+                    <button id="newUserBtn" class="px-4 py-2 rounded bg-primary-color font-semibold">Add User</button>
+                </div>
+
+                <!-- User Table -->
+                <div class="overflow-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-sm text-secondary-color border-b border-gray-700">
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">Name</th>
+                                <th class="p-3 text-left">Email</th>
+                                <th class="p-3 text-left">Balance</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userList">
+                            <!-- User rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- User Detail Modal -->
+                <div id="userModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen">
+                        <div class="fixed inset-0 bg-black opacity-50"></div>
+                        <div class="bg-card-bg rounded shadow-lg w-11/12 md:w-1/2 z-20">
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold mb-4">User Details</h3>
+                                <div id="userDetails">
+                                    <!-- User details will be populated here -->
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-gray-700 text-right">
+                                <button id="editUserBtn" class="px-4 py-2 rounded bg-yellow-600 font-semibold mr-2">Edit</button>
+                                <button id="deleteUserBtn" class="px-4 py-2 rounded bg-red-600 font-semibold mr-2">Delete</button>
+                                <button id="closeUserModalBtn" class="px-4 py-2 rounded bg-gray-600 font-semibold">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions Section -->
+            <section id="transactions" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Transactions</h2>
+
+                <!-- Transaction Filters -->
+                <div class="mb-4">
+                    <label for="transactionType" class="mr-2">Type:</label>
+                    <select id="transactionType" class="px-4 py-2 rounded bg-card-bg border border-gray-700 mr-4">
+                        <option value="all">All</option>
+                        <option value="deposit">Deposit</option>
+                        <option value="withdrawal">Withdrawal</option>
+                    </select>
+
+                    <label for="transactionStatus" class="mr-2">Status:</label>
+                    <select id="transactionStatus" class="px-4 py-2 rounded bg-card-bg border border-gray-700">
+                        <option value="all">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+
+                <!-- Transaction Table -->
+                <div class="overflow-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-sm text-secondary-color border-b border-gray-700">
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">User</th>
+                                <th class="p-3 text-left">Type</th>
+                                <th class="p-3 text-left">Amount</th>
+                                <th class="p-3 text-left">Status</th>
+                                <th class="p-3 text-left">Date</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionList">
+                            <!-- Transaction rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Games Section -->
+            <section id="games" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Games</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Game Cards -->
+                    <div class="bg-card-bg rounded shadow p-4">
+                        <img src="flappy-preview.png" alt="Flappy BONK" class="w-full h-40 object-cover mb-4">
+                        <h4 class="font-semibold mb-2">Flappy BONK</h4>
+                        <div class="flex justify-between text-sm">
+                            <span>Players: <span id="flappyPlayers">0</span></span>
+                            <span>High Score: <span id="flappyHighScore">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-card-bg rounded shadow p-4">
+                        <img src="clicker-preview.png" alt="BONK Clicker" class="w-full h-40 object-cover mb-4">
+                        <h4 class="font-semibold mb-2">BONK Clicker</h4>
+                        <div class="flex justify-between text-sm">
+                            <span>Players: <span id="clickerPlayers">0</span></span>
+                            <span>Clicks: <span id="totalClicks">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-card-bg rounded shadow p-4">
+                        <img src="dino-preview.png" alt="BONK Dino" class="w-full h-40 object-cover mb-4">
+                        <h4 class="font-semibold mb-2">BONK Dino</h4>
+                        <div class="flex justify-between text-sm">
+                            <span>Players: <span id="dinoPlayers">0</span></span>
+                            <span>High Score: <span id="dinoHighScore">0</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Add more game cards as needed -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Settings</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- System Settings -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">System</h3>
+                        
+                        <div class="mb-4">
+                            <label for="maintenanceMode" class="flex items-center">
+                                <input type="checkbox" id="maintenanceMode" class="form-checkbox h-5 w-5 text-primary-color mr-2">
+                                <span class="text-sm">Maintenance Mode</span>
+                            </label>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="referralBonus" class="block mb-1 text-sm">Referral Bonus (BONK)</label>
+                            <input type="number" id="referralBonus" class="w-24 px-2 py-1 rounded bg-card-bg border border-gray-700">
+                        </div>
+
+                        <!-- Add more system settings as needed -->
+                    </div>
+
+                    <!-- Game Settings -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Games</h3>
+                        
+                        <div class="mb-4">
+                            <label for="flappyReward" class="block mb-1 text-sm">Flappy BONK Reward</label>
+                            <input type="number" id="flappyReward" class="w-24 px-2 py-1 rounded bg-card-bg border border-gray-700">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="clickerReward" class="block mb-1 text-sm">BONK Clicker Reward</label>
+                            <input type="number" id="clickerReward" class="w-24 px-2 py-1 rounded bg-card-bg border border-gray-700">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="dinoReward" class="block mb-1 text-sm">BONK Dino Reward</label>
+                            <input type="number" id="dinoReward" class="w-24 px-2 py-1 rounded bg-card-bg border border-gray-700">
+                        </div>
+
+                        <!-- Add more game settings as needed -->
+                    </div>
+                </div>
+
+                <button id="saveSettingsBtn" class="mt-4 px-4 py-2 rounded bg-primary-color font-semibold">Save Settings</button>
+            </section>
+        </div>
     </div>
 
     <script>
-        // Verileri Güncelleme İşlevleri
-        async function updateDashboardStats() {
+        // Data fetching and rendering functions will be added here
+        async function fetchData() {
             try {
                 const stats = await DATABASE.stats.getGlobalStats();
                 
-                // Genel İstatistikler
-                document.getElementById('total-users').textContent = stats.totalUsers.toLocaleString();
-                document.getElementById('total-bonk').textContent = stats.totalBonk.toLocaleString();
-                document.getElementById('total-referrals').textContent = stats.referralStats.totalReferrals.toLocaleString();
-                
-                // Oyun İstatistikleri
-                const gameStats = stats.gameStats;
-                
-                // Flappy Bird
-                document.getElementById('flappy-stats').textContent = 
-                    `Toplam Oyun: ${gameStats.flappyBird.totalPlays.toLocaleString()} | En Yüksek Skor: ${gameStats.flappyBird.highScore.toLocaleString()}`;
-                document.getElementById('flappy-progress').style.width = 
-                    `${Math.min(gameStats.flappyBird.totalPlays / 1000 * 100, 100)}%`;
-                
-                // Clicker
-                document.getElementById('clicker-stats').textContent = 
-                    `Toplam Tıklama: ${gameStats.clicker.totalClicks.toLocaleString()} | Aktif Kullanıcı: ${gameStats.clicker.activeAutoClickers.toLocaleString()}`;
-                document.getElementById('clicker-progress').style.width = 
-                    `${Math.min(gameStats.clicker.totalClicks / 10000 * 100, 100)}%`;
-                
-                // Dino Runner
-                document.getElementById('dino-stats').textContent = 
-                    `Toplam Oyun: ${gameStats.dinoRunner.totalPlays.toLocaleString()} | En Yüksek Skor: ${gameStats.dinoRunner.highScore.toLocaleString()}`;
-                document.getElementById('dino-progress').style.width = 
-                    `${Math.min(gameStats.dinoRunner.totalPlays / 1000 * 100, 100)}%`;
+                // Update KPI cards
+                document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+                document.getElementById('totalBonk').textContent = stats.totalBonk.toLocaleString();
+                document.getElementById('dailyTransactions').textContent = stats.transactions?.last24Hours?.count || 0;
 
-                // Top Referansçılar
-                const referrerList = document.getElementById('referrer-list');
-                referrerList.innerHTML = '';
-                stats.referralStats.topReferrers.forEach(referrer => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="py-2">${referrer.userId}</td>
-                        <td class="py-2 text-right">${referrer.referralCount.toLocaleString()}</td>
-                    `;
-                    referrerList.appendChild(row);
-                });
+                // Update user analytics charts
+                renderNewUsersChart(stats.newUsersByDay);
+                renderUserActivityChart(stats.userActivityByHour);
+                
+                // Update recent activity
+                renderRecentActivity(stats.recentActivity);
+
+                // Update game stats
+                document.getElementById('flappyPlayers').textContent = stats.gameStats.flappyBird.totalPlays;
+                document.getElementById('flappyHighScore').textContent = stats.gameStats.flappyBird.highScore;
+                document.getElementById('clickerPlayers').textContent = stats.gameStats.clicker.activePlayers;
+                document.getElementById('totalClicks').textContent = stats.gameStats.clicker.totalClicks;  
+                document.getElementById('dinoPlayers').textContent = stats.gameStats.dinoRunner.totalPlays;
+                document.getElementById('dinoHighScore').textContent = stats.gameStats.dinoRunner.highScore;
             } catch (error) {
-                console.error('İstatistik güncelleme hatası:', error);
+                console.error('Error fetching data:', error);
             }
         }
 
-        // Kullanıcı Arama
-        async function searchUsers() {
-            const searchInput = document.getElementById('user-search').value.trim();
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = ''; // Önceki sonuçları temizle
-
-            try {
-                // Tüm kullanıcıları al
-                const data = await DATABASE.api.getAllData();
-                const users = data.users || {};
-
-                // Kullanıcıları filtrele
-                const filteredUsers = Object.entries(users)
-                    .filter(([userId, userData]) => 
-                        !searchInput || 
-                        userId.toLowerCase().includes(searchInput.toLowerCase())
-                    )
-                    .slice(0, 10); // İlk 10 sonucu göster
-
-                // Kullanıcıları listele
-                filteredUsers.forEach(([userId, userData]) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="p-3">${userId}</td>
-                        <td class="p-3">${(userData.bonkBalance || 0).toLocaleString()} BONK</td>
-                        <td class="p-3">${userData.joinDate ? new Date(userData.joinDate).toLocaleDateString() : 'Bilinmiyor'}</td>
-                        <td class="p-3">
-                            <button onclick="showUserDetails('${userId}')" class="bg-blue-600 px-3 py-1 rounded mr-2">Detay</button>
-                            <button onclick="sendBonk('${userId}')" class="bg-green-600 px-3 py-1 rounded">BONK Gönder</button>
-                        </td>
-                    `;
-                    userList.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Kullanıcı arama hatası:', error);
-                userList.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center text-red-500 p-4">
-                            Kullanıcılar yüklenemedi: ${error.message}
-                        </td>
-                    </tr>
-                `;
-            }
+        // Render charts, tables, etc. based on fetched data
+        function renderNewUsersChart(data) {
+            // Render new users chart using Chart.js
         }
 
-        // Kullanıcı Detayları Gösterme
-        function showUserDetails(userId) {
-            // Modal veya yan panel açma işlevi
-            alert(`Kullanıcı Detayları - ID: ${userId}`);
+        function renderUserActivityChart(data) {
+            // Render user activity chart using Chart.js  
         }
 
-        // BONK Gönderme İşlevi
-        async function sendBonk(userId) {
-            const bonkAmount = prompt(`${userId} kullanıcısına kaç BONK göndermek istiyorsunuz?`);
-            
-            if (bonkAmount && !isNaN(bonkAmount)) {
-                try {
-                    // Kullanıcının mevcut bakiyesini güncelle
-                    const data = await DATABASE.api.getAllData();
-                    const users = data.users || {};
-
-                    if (users[userId]) {
-                        users[userId].bonkBalance = 
-                            (users[userId].bonkBalance || 0) + parseInt(bonkAmount);
-
-                        // Veriyi güncelle
-                        await DATABASE.api.updateData(data);
-
-                        alert(`${bonkAmount} BONK ${userId} kullanıcısına gönderildi!`);
-                        
-                        // Listeyi yeniden yükle
-                        searchUsers();
-                    } else {
-                        alert('Kullanıcı bulunamadı!');
-                    }
-                } catch (error) {
-                    console.error('BONK gönderme hatası:', error);
-                    alert('BONK gönderme işlemi başarısız oldu.');
-                }
-            }
+        function renderRecentActivity(data) {
+            // Render recent activity table rows
         }
 
-        // Sistem Ayarları Yönetimi
-        async function toggleMaintenanceMode(enable) {
-            try {
-                const data = await DATABASE.api.getAllData();
-                
-                // Bakım modu ayarını güncelle
-                if (!data.systemSettings) data.systemSettings = {};
-                data.systemSettings.maintenanceMode = enable;
-
-                await DATABASE.api.updateData(data);
-
-                alert(`Bakım modu ${enable ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`);
-            } catch (error) {
-                console.error('Bakım modu hatası:', error);
-                alert('Ayar değişikliği başarısız oldu.');
-            }
+        // User management functions
+        async function fetchUsers() {
+            // Fetch user list from database and render table rows
         }
 
-        // Sayfa Yüklendiğinde
-        window.onload = function() {
-            // İstatistikleri ilk yükleme
-            updateDashboardStats();
+        async function addUser() {
+            // Show add user form modal  
+        }
 
-            // Her dakikada bir istatistikleri güncelle
-            setInterval(updateDashboardStats, 60000);
-        };
+        async function viewUser(userId) {
+            // Fetch user details and show in modal
+        }
+
+        async function editUser(userId) {
+            // Show edit user form modal
+        }
+
+        async function deleteUser(userId) {
+            // Confirm and delete user   
+        }
+
+        // Transaction management functions  
+        async function fetchTransactions() {
+            // Fetch transactions based on filters and render table rows
+        }
+
+        // Settings management functions
+        async function updateSettings() {
+            // Update settings in database 
+        }
+
+        // Event listeners
+        document.getElementById('newUserBtn').addEventListener('click', addUser);
+        document.getElementById('saveSettingsBtn').addEventListener('click', updateSettings);
+        // Add more event listeners as needed
+
+        // Initial data load
+        fetchData();
+        fetchUsers();
+        fetchTransactions();
     </script>
 </body>
 </html>
