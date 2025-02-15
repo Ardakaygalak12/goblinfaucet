@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DGB Goblin Faucet - Admin Panel</title>
+    <style>
+        :root {
+            --goblin-green: #4caf50;
+            --goblin-dark: #1b5e20;
+            --background: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--goblin-dark);
+            color: white;
+            padding: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--goblin-dark);
+        }
+
+        .form-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .menu-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-item.active {
+            background: var(--goblin-green);
+        }
+
+        .btn {
+            background: var(--goblin-green);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--goblin-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: var(--goblin-dark);
+            color: white;
+        }
+
+        .log-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-left: 4px solid #ddd;
+            margin-bottom: 0.5rem;
+        }
+
+        .log-entry.error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .log-entry.success {
+            border-left-color: var(--goblin-green);
+            background: #f0fff0;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status-badge.active {
+            background: #e8f5e9;
+            color: var(--goblin-dark);
+        }
+
+        .status-badge.inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-container">
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <div class="menu-item active" onclick="showSection('dashboard')">Dashboard</div>
+            <div class="menu-item" onclick="showSection('shortlinks')">Shortlinkler</div>
+            <div class="menu-item" onclick="showSection('ptcads')">PTC Reklamlar</div>
+            <div class="menu-item" onclick="showSection('users')">Kullanıcılar</div>
+            <div class="menu-item" onclick="showSection('logs')">Sistem Logları</div>
+            <div class="menu-item" onclick="showSection('settings')">Ayarlar</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section">
+                <h2>Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Faucet Bakiyesi</h3>
+                        <div id="faucetBalance" class="stat-value">0 DGB</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Bugünkü Ödemeler</h3>
+                        <div id="dailyPayouts" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Toplam Kullanıcı</h3>
+                        <div id="totalUsers" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Aktif Shortlink</h3>
+                        <div id="activeShortlinks" class="stat-value">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shortlinks Section -->
+            <div id="shortlinks" class="section" style="display: none;">
+                <h2>Shortlink Yönetimi</h2>
+                <div class="form-container">
+                    <h3>Yeni Shortlink Ekle</h3>
+                    <form id="shortlinkForm" onsubmit="return handleShortlinkSubmit(event)">
+                        <div class="form-group">
+                            <label>Başlık</label>
+                            <input type="text" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>URL</label>
+                            <input type="url" name="url" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ödül (DGB)</label>
+                            <input type="number" name="reward" step="0.00000001" required>
+                        </div>
+                        <button type="submit" class="btn">Ekle</button>
+                    </form>
+                </div>
+
+                <table id="shortlinkTable">
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>URL</th>
+                            <th>Ödül</th>
+                            <th>Tıklanma</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shortlinkTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Admin panel sidebar'ına eklenecek menü öğesi -->
+            <div class="menu-item" onclick="showSection('ptcads')">PTC Reklamlar</div>
+
+            <!-- Ana içeriğe eklenecek PTC Ads bölümü -->
+            <div id="ptcads" class="section" style="display: none;">
+                <h2>PTC Reklamlar</h2>
+
+                <div class="form-container">
+                    <h3>Yeni PTC Reklam Ekle</h3>
+                    <form id="ptcForm" onsubmit="return handlePTCSubmit(event)">
+                        <div class="form-group">
+                            <label>Başlık</label>
+                            <input type="text" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>URL</label>
+                            <input type="url" name="url" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bekleme Süresi (saniye)</label>
+                            <input type="number" name="duration" min="10" max="180" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ödül (DGB)</label>
+                            <input type="number" name="reward" step="0.00000001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Günlük Görüntülenme Limiti</label>
+                            <input type="number" name="dailyLimit" min="1" required>
+                        </div>
+                        <button type="submit" class="btn">Ekle</button>
+                    </form>
+                </div>
+
+                <table id="ptcTable">
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>URL</th>
+                            <th>Süre</th>
+                            <th>Ödül</th>
+                            <th>Görüntülenme</th>
+                            <th>Kalan Limit</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ptcTableBody"></tbody>
+                </table>
+            </div>
+
+
+            <!-- Users Section -->
+            <div id="users" class="section" style="display: none;">
+                <h2>Kullanıcı Yönetimi</h2>
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>E-posta</th>
+                            <th>Toplam Kazanç</th>
+                            <th>Son Claim</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Logs Section -->
+            <div id="logs" class="section" style="display: none;">
+                <h2>Sistem Logları</h2>
+                <div class="form-container">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <select id="logType" class="form-control">
+                            <option value="">Tüm Loglar</option>
+                            <option value="ERROR">Hatalar</option>
+                            <option value="PAYMENT">Ödemeler</option>
+                            <option value="SHORTLINK">Shortlinkler</option>
+                        </select>
+                        <button onclick="clearLogs()" class="btn">Logları Temizle</button>
+                    </div>
+                </div>
+                <div id="logList" class="log-container"></div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section" style="display: none;">
+                <h2>Sistem Ayarları</h2>
+                <div class="form-container">
+                    <form id="settingsForm" onsubmit="return handleSettingsSubmit(event)">
+                        <div class="form-group">
+                            <label>Minimum Ödeme (DGB)</label>
+                            <input type="number" name="minPayout" step="0.00000001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Maksimum Ödeme (DGB)</label>
+                            <input type="number" name="maxPayout" step="0.00000001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>FaucetPay API Key</label>
+                            <input type="text" name="apiKey" required>
+                        </div>
+                        <button type="submit" class="btn">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="faucetpay.js"></script>
+    <script>
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadDashboard();
+            initPTCAds(); // PTC Ads başlatma
+        });
+
+        // Admin kontrolü
+        function checkAdminAuth() {
+            const isAdmin = localStorage.getItem('isAdmin');
+            if (!isAdmin) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Dashboard verilerini yükle
+        async function loadDashboard() {
+            try {
+                // Faucet bakiyesini kontrol et
+                const balance = await faucetManager.faucet.getBalance();
+                document.getElementById('faucetBalance').textContent =
+                    `${balance.balance.toFixed(8)} DGB`;
+
+                // Diğer istatistikleri yükle
+                const stats = await getSystemStats();
+                document.getElementById('dailyPayouts').textContent = stats.dailyPayouts;
+                document.getElementById('totalUsers').textContent = stats.totalUsers;
+                document.getElementById('activeShortlinks').textContent = stats.activeShortlinks;
+                document.getElementById('activePTCAds').textContent = stats.activePTCAds;
+
+            } catch (error) {
+                console.error('Dashboard yüklenirken hata:', error);
+            }
+        }
+
+        // Bölüm değiştirme
+        function showSection(sectionId) {
+            // Tüm bölümleri gizle
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Seçilen bölümü göster
+            document.getElementById(sectionId).style.display = 'block';
+
+            // Menü öğelerini güncelle
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Bölüme özel veri yükleme
+            switch (sectionId) {
+                case 'shortlinks':
+                    loadShortlinks();
+                    break;
+                case 'ptcads':
+                    loadPTCAds();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'logs':
+                    loadLogs();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // PTC Ads İşlemleri
+        async function initPTCAds() {
+            if (!localStorage.getItem('ptcAds')) {
+                localStorage.setItem('ptcAds', JSON.stringify([]));
+            }
+            loadPTCAds();
+        }
+
+        async function loadPTCAds() {
+            const ptcTable = document.getElementById('ptcTable');
+            if (!ptcTable) return;
+
+            const ads = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const tableBody = ptcTable.querySelector('tbody');
+
+            tableBody.innerHTML = ads.map(ad => `
+        <tr>
+            <td>${ad.title}</td>
+            <td>${ad.url}</td>
+            <td>${ad.duration}s</td>
+            <td>${ad.reward} DGB</td>
+            <td>${ad.views || 0}</td>
+            <td>
+                <button onclick="togglePTCAd('${ad.id}')" class="btn btn-sm">
+                    ${ad.active ? 'Deaktif Et' : 'Aktif Et'}
+                </button>
+                <button onclick="deletePTCAd('${ad.id}')" class="btn btn-sm btn-danger">
+                    Sil
+                </button>
+            </td>
+        </tr>
+    `).join('');
+        }
+
+        async function handlePTCSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+
+            const ptcData = {
+                id: 'ptc_' + Date.now(),
+                title: form.title.value,
+                url: form.url.value,
+                duration: parseInt(form.duration.value),
+                reward: parseFloat(form.reward.value),
+                views: 0,
+                active: true,
+                createdAt: new Date()
+            };
+
+            try {
+                const ads = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+                ads.push(ptcData);
+                localStorage.setItem('ptcAds', JSON.stringify(ads));
+
+                form.reset();
+                loadPTCAds();
+                alert('PTC reklam başarıyla eklendi!');
+            } catch (error) {
+                alert('PTC reklam eklenirken hata oluştu!');
+            }
+
+            return false;
+        }
+
+        function togglePTCAd(adId) {
+            const ads = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const adIndex = ads.findIndex(ad => ad.id === adId);
+
+            if (adIndex !== -1) {
+                ads[adIndex].active = !ads[adIndex].active;
+                localStorage.setItem('ptcAds', JSON.stringify(ads));
+                loadPTCAds();
+            }
+        }
+
+        function deletePTCAd(adId) {
+            if (!confirm('Bu PTC reklamı silmek istediğinize emin misiniz?')) return;
+
+            const ads = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const filteredAds = ads.filter(ad => ad.id !== adId);
+            localStorage.setItem('ptcAds', JSON.stringify(filteredAds));
+            loadPTCAds();
+        }
+
+        // Log sistemi
+        function loadLogs() {
+            const logType = document.getElementById('logType').value;
+            const logs = faucetManager.logger.getLogs(logType);
+
+            const logList = document.getElementById('logList');
+            logList.innerHTML = logs.map(log => `
+        <div class="log-entry ${log.level.toLowerCase()}">
+            <div class="log-time">${new Date(log.timestamp).toLocaleString()}</div>
+            <div class="log-type">[${log.type}]</div>
+            <div class="log-message">${JSON.stringify(log.data)}</div>
+        </div>
+    `).join('');
+        }
+
+        // İstatistik alma fonksiyonu
+        async function getSystemStats() {
+            const ads = JSON.parse(localStorage.getItem('ptcAds') || '[]');
+            const shortlinks = JSON.parse(localStorage.getItem('shortlinks') || '[]');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+
+            return {
+                dailyPayouts: claims.filter(claim => {
+                    const claimDate = new Date(claim.timestamp);
+                    const today = new Date();
+                    return claimDate.toDateString() === today.toDateString();
+                }).length,
+                totalUsers: users.length,
+                activeShortlinks: shortlinks.filter(link => link.active).length,
+                activePTCAds: ads.filter(ad => ad.active).length
+            };
+        }
+
+        // Periyodik güncelleme
+        setInterval(loadDashboard, 60000); // Her dakika güncelle
+    </script>
+</body>
+
+</html>
