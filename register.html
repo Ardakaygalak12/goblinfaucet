@@ -1,0 +1,198 @@
+<!-- register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - BonkFaucet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script>
+        const DATABASE_CONFIG = {
+            BIN_ID: "67b0a195ad19ca34f804ba90",
+            API_KEY: "$2a$10$m3ykh1NKxmtQDVM140H6TOTqsemkiBEdfdQnG/ApyhjJ1Duj2Ri6W",
+            BASE_URL: "https://api.jsonbin.io/v3/b"
+        };
+
+        let phantomProvider = null;
+        let walletAddress = null;
+
+        const getProvider = () => {
+            if ('phantom' in window) {
+                const provider = window.phantom?.solana;
+                if (provider?.isPhantom) {
+                    return provider;
+                }
+            }
+            window.open('https://phantom.app/', '_blank');
+        };
+
+        async function connectWallet() {
+            try {
+                phantomProvider = getProvider();
+                if (!phantomProvider) return;
+
+                const { publicKey } = await phantomProvider.connect();
+                walletAddress = publicKey.toString();
+                
+                const connectButton = document.getElementById('connect-wallet');
+                connectButton.textContent = 'Wallet Connected';
+                connectButton.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                connectButton.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                document.getElementById('wallet-address').value = walletAddress;
+            } catch (err) {
+                console.error('Error connecting wallet:', err);
+                showError('Failed to connect wallet');
+            }
+        }
+
+        async function register(event) {
+            event.preventDefault();
+            
+            if (!walletAddress) {
+                showError('Please connect your wallet first');
+                return;
+            }
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${DATABASE_CONFIG.BASE_URL}/${DATABASE_CONFIG.BIN_ID}/latest`, {
+                    headers: {
+                        'X-Master-Key': DATABASE_CONFIG.API_KEY
+                    }
+                });
+                
+                const data = await response.json();
+                const users = data.record.users || [];
+
+                // Check if email already exists
+                if (users.some(u => u.email === email)) {
+                    showError('Email already registered');
+                    return;
+                }
+
+                // Create new user
+                const newUser = {
+                    id: crypto.randomUUID(),
+                    username,
+                    email,
+                    password,
+                    phantomWallet: walletAddress,
+                    isWalletConnected: true,
+                    balance: {
+                        bonk: 0,
+                        usdt: 0
+                    },
+                    dailyLimits: {
+                        shortlinks: {
+                            count: 0,
+                            lastReset: new Date().toISOString(),
+                            maxDaily: 50
+                        },
+                        ptcAds: {
+                            count: 0,
+                            lastReset: new Date().toISOString(),
+                            maxDaily: 20
+                        }
+                    },
+                    createdAt: new Date().toISOString()
+                };
+
+                users.push(newUser);
+                data.record.users = users;
+
+                // Update database
+                await fetch(`${DATABASE_CONFIG.BASE_URL}/${DATABASE_CONFIG.BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': DATABASE_CONFIG.API_KEY
+                    },
+                    body: JSON.stringify(data.record)
+                });
+
+                localStorage.setItem('user', JSON.stringify(newUser));
+                window.location.href = '/dashboard.html';
+            } catch (error) {
+                showError('Registration failed. Please try again.');
+                console.error('Registration error:', error);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+                    Create your account
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-400">
+                    Or
+                    <a href="/login.html" class="font-medium text-purple-600 hover:text-purple-500">
+                        sign in to existing account
+                    </a>
+                </p>
+            </div>
+            <form class="mt-8 space-y-6" onsubmit="register(event)">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="username" class="sr-only">Username</label>
+                        <input id="username" name="username" type="text" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Username">
+                    </div>
+                    <div>
+                        <label for="email" class="sr-only">Email address</label>
+                        <input id="email" name="email" type="email" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Email address">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Password">
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="sr-only">Confirm Password</label>
+                        <input id="confirm-password" name="confirm-password" type="password" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-b-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Confirm Password">
+                    </div>
+                </div>
+
+                <div>
+                    <input type="hidden" id="wallet-address" name="wallet-address">
+                    <button type="button" id="connect-wallet" onclick="connectWallet()"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 mb-4">
+                        Connect Phantom Wallet
+                    </button>
+                    <button type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Create Account
+                    </button>
+                </div>
+                
+                <div id="error-message" class="hidden text-red-500 text-center mt-2"></div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
