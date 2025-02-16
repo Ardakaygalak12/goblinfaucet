@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BONK Admin Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="database.js"></script>
     <style>
         :root {
@@ -95,6 +96,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
+            z-index: 1000;
         }
 
         .modal-content {
@@ -123,6 +125,14 @@
             border-radius: 4px;
         }
 
+        .search-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
         .item-list {
             margin-top: 1rem;
         }
@@ -135,6 +145,33 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .charts-grid {
@@ -156,71 +193,110 @@
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1>BONK Admin Panel</h1>
-                <button class="btn btn-primary" onclick="refreshData()">Refresh Data</button>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshData()">Refresh Data</button>
+                    <button class="btn btn-primary" onclick="exportToExcel()">Export Data</button>
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Stats Section -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <p id="totalUsers">Loading...</p>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('users')">Users</button>
+            <button class="tab-btn" onclick="switchTab('content')">Content</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <p id="totalUsers">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total BONK</h3>
+                    <p id="totalBonk">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Content</h3>
+                    <p id="activeContent">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Daily Earnings</h3>
+                    <p id="dailyEarnings">Loading...</p>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Total BONK</h3>
-                <p id="totalBonk">Loading...</p>
-            </div>
-            <div class="stat-card">
-                <h3>Active Content</h3>
-                <p id="activeContent">Loading...</p>
-            </div>
-            <div class="stat-card">
-                <h3>Daily Earnings</h3>
-                <p id="dailyEarnings">Loading...</p>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h2>Activity Overview</h2>
+                    <canvas id="activityChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h2>Earnings Overview</h2>
+                    <canvas id="earningsChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <!-- Content Management -->
-        <div class="content-grid">
-            <!-- PTC Ads -->
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <input type="text" class="search-input" placeholder="Search users..." onkeyup="filterUsers()">
             <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>PTC Ads</h2>
-                    <button class="btn btn-primary" onclick="openModal('ptcAd')">Add New</button>
-                </div>
-                <div id="ptcAdsList" class="item-list"></div>
-            </div>
-
-            <!-- Shortlinks -->
-            <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>Shortlinks</h2>
-                    <button class="btn btn-primary" onclick="openModal('shortlink')">Add New</button>
-                </div>
-                <div id="shortlinksList" class="item-list"></div>
-            </div>
-
-            <!-- Tasks -->
-            <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>Tasks</h2>
-                    <button class="btn btn-primary" onclick="openModal('task')">Add New</button>
-                </div>
-                <div id="tasksList" class="item-list"></div>
+                <h2>User Management</h2>
+                <div id="usersList" class="item-list"></div>
             </div>
         </div>
 
-        <!-- Charts -->
-        <div class="charts-grid">
-            <div class="chart-card">
-                <h2>Activity Overview</h2>
-                <canvas id="activityChart"></canvas>
+        <!-- Content Tab -->
+        <div id="content" class="tab-content">
+            <div class="content-grid">
+                <!-- PTC Ads -->
+                <div class="content-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>PTC Ads</h2>
+                        <button class="btn btn-primary" onclick="openModal('ptcAd')">Add New</button>
+                    </div>
+                    <input type="text" class="search-input" placeholder="Search PTC ads..." onkeyup="filterPtcAds()">
+                    <div id="ptcAdsList" class="item-list"></div>
+                </div>
+
+                <!-- Shortlinks -->
+                <div class="content-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>Shortlinks</h2>
+                        <button class="btn btn-primary" onclick="openModal('shortlink')">Add New</button>
+                    </div>
+                    <input type="text" class="search-input" placeholder="Search shortlinks..." onkeyup="filterShortlinks()">
+                    <div id="shortlinksList" class="item-list"></div>
+                </div>
+
+                <!-- Tasks -->
+                <div class="content-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>Tasks</h2>
+                        <button class="btn btn-primary" onclick="openModal('task')">Add New</button>
+                    </div>
+                    <input type="text" class="search-input" placeholder="Search tasks..." onkeyup="filterTasks()">
+                    <div id="tasksList" class="item-list"></div>
+                </div>
             </div>
-            <div class="chart-card">
-                <h2>Earnings Overview</h2>
-                <canvas id="earningsChart"></canvas>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h2>User Growth</h2>
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h2>Content Performance</h2>
+                    <canvas id="contentPerformanceChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -313,23 +389,24 @@
 
     <script>
         // Global variables
-        let adminId = 'admin_' + Date.now(); // Simple admin ID generation
+        let adminId = 'admin_' + Date.now();
         let charts = {};
+        let currentData = null;
 
-        // Initialize the dashboard
+        // Initialize dashboard
         async function initDashboard() {
             await refreshData();
             initCharts();
-            setInterval(refreshData, 30000); // Refresh every 30 seconds
+            setInterval(refreshData, 30000);
         }
 
-        // Refresh dashboard data
+        // Refresh data
         async function refreshData() {
             try {
-                const data = await DATABASE.api.getAllData();
-                updateStats(data);
-                updateContentLists(data);
-                updateCharts(data);
+                currentData = await DATABASE.api.getAllData();
+                updateStats(currentData);
+                updateContentLists(currentData);
+                updateCharts(currentData);
             } catch (error) {
                 console.error('Error refreshing data:', error);
                 alert('Error refreshing data');
@@ -349,7 +426,6 @@
             document.getElementById('totalBonk').textContent = totalBonk.toLocaleString() + ' BONK';
             document.getElementById('activeContent').textContent = activeContent;
             
-            // Calculate daily earnings
             const today = new Date().toISOString().split('T')[0];
             const dailyEarnings = users.reduce((sum, user) => sum + (user.earnings?.daily?.[today] || 0), 0);
             document.getElementById('dailyEarnings').textContent = dailyEarnings.toLocaleString() + ' BONK';
@@ -366,6 +442,7 @@
                         <p>${ad.bonkReward} BONK - ${ad.status}</p>
                     </div>
                     <div>
+                        <button class="btn btn-primary" onclick="editContent('ptcAd', '${ad.id}')">Edit</button>
                         <button class="btn btn-danger" onclick="deleteContent('ptcAd', '${ad.id}')">Delete</button>
                     </div>
                 </div>
@@ -380,6 +457,7 @@
                         <p>${link.bonkReward} BONK - ${link.status}</p>
                     </div>
                     <div>
+                        <button class="btn btn-primary" onclick="editContent('shortlink', '${link.id}')">Edit</button>
                         <button class="btn btn-danger" onclick="deleteContent('shortlink', '${link.id}')">Delete</button>
                     </div>
                 </div>
@@ -394,15 +472,32 @@
                         <p>${task.bonkReward} BONK - ${task.status}</p>
                     </div>
                     <div>
+                        <button class="btn btn-primary" onclick="editContent('task', '${task.id}')">Edit</button>
                         <button class="btn btn-danger" onclick="deleteContent('task', '${task.id}')">Delete</button>
                     </div>
                 </div>
             `).join('');
+
+            // Update Users list
+            const usersList = document.getElementById('usersList');
+            if (usersList) {
+                usersList.innerHTML = Object.entries(data.users || {}).map(([userId, user]) => `
+                    <div class="item">
+                        <div>
+                            <h4>${user.email || userId}</h4>
+                            <p>${user.bonkBalance || 0} BONK</p>
+                            <small>Wallet: ${user.phantomWallet || 'Not connected'}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="viewUserDetails('${userId}')">View</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
 
         // Initialize charts
         function initCharts() {
-            // Activity Chart
             const activityCtx = document.getElementById('activityChart').getContext('2d');
             charts.activity = new Chart(activityCtx, {
                 type: 'line',
@@ -421,7 +516,6 @@
                 }
             });
 
-            // Earnings Chart
             const earningsCtx = document.getElementById('earningsChart').getContext('2d');
             charts.earnings = new Chart(earningsCtx, {
                 type: 'bar',
@@ -438,9 +532,48 @@
                     maintainAspectRatio: false
                 }
             });
+
+            if (document.getElementById('userGrowthChart')) {
+                const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+                charts.userGrowth = new Chart(userGrowthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'New Users',
+                            data: [],
+                            borderColor: '#F59E0B',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            if (document.getElementById('contentPerformanceChart')) {
+                const contentPerformanceCtx = document.getElementById('contentPerformanceChart').getContext('2d');
+                charts.contentPerformance = new Chart(contentPerformanceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['PTC Ads', 'Shortlinks', 'Tasks'],
+                        datasets: [{
+                            label: 'Completion Rate',
+                            data: [],
+                            backgroundColor: ['#4F46E5', '#10B981', '#F59E0B']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
         }
 
-        // Update charts with new data
+        // Update charts
         function updateCharts(data) {
             // Get last 7 days
             const dates = Array.from({length: 7}, (_, i) => {
@@ -472,6 +605,41 @@
             charts.earnings.data.labels = dates;
             charts.earnings.data.datasets[0].data = earnings;
             charts.earnings.update();
+
+            // Update User Growth Chart if exists
+            if (charts.userGrowth) {
+                const newUsers = dates.map(date => {
+                    return Object.values(data.users || {}).filter(user => {
+                        const joinDate = new Date(user.joinDate);
+                        const checkDate = new Date(date);
+                        return joinDate.toDateString() === checkDate.toDateString();
+                    }).length;
+                });
+
+                charts.userGrowth.data.labels = dates;
+                charts.userGrowth.data.datasets[0].data = newUsers;
+                charts.userGrowth.update();
+            }
+
+            // Update Content Performance Chart if exists
+            if (charts.contentPerformance) {
+                const ptcCompletion = calculateCompletionRate(data.ptcAds || []);
+                const shortlinkCompletion = calculateCompletionRate(data.shortlinks || []);
+                const taskCompletion = calculateCompletionRate(data.tasks || []);
+
+                charts.contentPerformance.data.datasets[0].data = [
+                    ptcCompletion,
+                    shortlinkCompletion,
+                    taskCompletion
+                ];
+                charts.contentPerformance.update();
+            }
+        }
+
+        // Calculate completion rate
+        function calculateCompletionRate(items) {
+            if (!items.length) return 0;
+            return items.reduce((sum, item) => sum + (item.stats?.totalCompletions || 0), 0) / items.length;
         }
 
         // Modal functions
@@ -483,7 +651,7 @@
             document.getElementById(`${type}Modal`).style.display = 'none';
         }
 
-        // Handle form submissions
+        // Form submissions
         async function handlePtcAdSubmit(event) {
             event.preventDefault();
             const form = event.target;
@@ -552,7 +720,7 @@
             }
         }
 
-        // Delete content
+        // Content management
         async function deleteContent(type, id) {
             if (!confirm('Are you sure you want to delete this item?')) {
                 return;
@@ -578,6 +746,182 @@
             } catch (error) {
                 console.error('Error deleting content:', error);
                 alert('Error deleting content');
+            }
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (!currentData) return;
+
+            const wb = XLSX.utils.book_new();
+            
+            // Users worksheet
+            const usersData = Object.values(currentData.users || {}).map(user => ({
+                'User ID': user.userId,
+                'Email': user.email,
+                'Wallet': user.phantomWallet,
+                'Balance': user.bonkBalance,
+                'Join Date': user.joinDate,
+                'Last Activity': user.lastActivity
+            }));
+            const usersWS = XLSX.utils.json_to_sheet(usersData);
+            XLSX.utils.book_append_sheet(wb, usersWS, "Users");
+
+            // Content worksheets
+            const ptcAdsWS = XLSX.utils.json_to_sheet(currentData.ptcAds || []);
+            XLSX.utils.book_append_sheet(wb, ptcAdsWS, "PTC Ads");
+
+            const shortlinksWS = XLSX.utils.json_to_sheet(currentData.shortlinks || []);
+            XLSX.utils.book_append_sheet(wb, shortlinksWS, "Shortlinks");
+
+            const tasksWS = XLSX.utils.json_to_sheet(currentData.tasks || []);
+            XLSX.utils.book_append_sheet(wb, tasksWS, "Tasks");
+
+            // Save the file
+            XLSX.writeFile(wb, "bonk_admin_data.xlsx");
+        }
+
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // Search and filter functions
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const userElements = document.querySelectorAll('#usersList .item');
+            
+            userElements.forEach(element => {
+                const text = element.textContent.toLowerCase();
+                element.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        function filterContent(type) {
+            const searchTerm = document.getElementById(`${type}Search`).value.toLowerCase();
+            const searchTerm = document.getElementById(`${type}Search`).value.toLowerCase();
+            const elements = document.querySelectorAll(`#${type}List .item`);
+            
+            elements.forEach(element => {
+                const text = element.textContent.toLowerCase();
+                element.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        function filterPtcAds() {
+            filterContent('ptcAds');
+        }
+
+        function filterShortlinks() {
+            filterContent('shortlinks');
+        }
+
+        function filterTasks() {
+            filterContent('tasks');
+        }
+
+        // User details view
+        async function viewUserDetails(userId) {
+            try {
+                const user = await DATABASE.users.getUser(userId);
+                if (!user) {
+                    alert('User not found');
+                    return;
+                }
+
+                const earnings = await DATABASE.earnings.getEarningsHistory(userId);
+                const withdrawals = await DATABASE.phantom.getWithdrawalHistory(userId);
+                const stats = await DATABASE.stats.getUserStats(userId);
+
+                // User detaylarını göstermek için modal aç
+                const modalContent = `
+                    <h3>User Details</h3>
+                    <p><strong>ID:</strong> ${user.userId}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Wallet:</strong> ${user.phantomWallet}</p>
+                    <p><strong>Balance:</strong> ${user.bonkBalance} BONK</p>
+                    <p><strong>Join Date:</strong> ${new Date(user.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Last Activity:</strong> ${new Date(user.lastActivity).toLocaleDateString()}</p>
+                    
+                    <h4>Statistics</h4>
+                    <p>Total Earned: ${stats.totalEarned} BONK</p>
+                    <p>Completed Tasks: ${stats.completedTasks}</p>
+                    <p>Viewed Ads: ${stats.viewedAds}</p>
+                    <p>Clicked Links: ${stats.clickedLinks}</p>
+                    
+                    <h4>Recent Earnings</h4>
+                    ${earnings.slice(0, 5).map(e => `
+                        <p>${new Date(e.date).toLocaleDateString()}: ${e.amount} BONK</p>
+                    `).join('')}
+                    
+                    <h4>Recent Withdrawals</h4>
+                    ${withdrawals.slice(0, 5).map(w => `
+                        <p>${new Date(w.timestamp).toLocaleDateString()}: ${w.amountBonk} BONK</p>
+                    `).join('')}
+                `;
+
+                // Modal göster
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'modal';
+                modalDiv.innerHTML = `
+                    <div class="modal-content">
+                        ${modalContent}
+                        <button class="btn btn-primary" onclick="this.closest('.modal').remove()">Close</button>
+                    </div>
+                `;
+                document.body.appendChild(modalDiv);
+                modalDiv.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading user details:', error);
+                alert('Error loading user details');
+            }
+        }
+
+        // Content editing
+        async function editContent(type, id) {
+            try {
+                const data = await DATABASE.api.getAllData();
+                let item;
+
+                switch(type) {
+                    case 'ptcAd':
+                        item = data.ptcAds.find(ad => ad.id === id);
+                        break;
+                    case 'shortlink':
+                        item = data.shortlinks.find(link => link.id === id);
+                        break;
+                    case 'task':
+                        item = data.tasks.find(task => task.id === id);
+                        break;
+                }
+
+                if (!item) {
+                    alert('Item not found');
+                    return;
+                }
+
+                // Fill form with current values
+                const form = document.getElementById(`${type}Form`);
+                Object.keys(item).forEach(key => {
+                    const input = form.elements[key];
+                    if (input) {
+                        input.value = item[key];
+                    }
+                });
+
+                // Show modal
+                openModal(type);
+            } catch (error) {
+                console.error('Error editing content:', error);
+                alert('Error editing content');
             }
         }
 
