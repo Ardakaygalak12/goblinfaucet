@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - BonkFaucet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const ADMIN_CREDENTIALS = {
+            email: "admin@bonkfaucet.com",
+            password: "BF@dm1n2024#sK9$pL"
+        };
+
+        async function adminLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+                // Set admin session
+                localStorage.setItem('adminSession', JSON.stringify({
+                    isAdmin: true,
+                    loginTime: new Date().getTime(),
+                    sessionExpiry: new Date().getTime() + (2 * 60 * 60 * 1000) // 2 hour session
+                }));
+                
+                // Redirect to admin panel
+                window.location.href = '/admin-panel.html';
+            } else {
+                showError('Invalid credentials');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            // Clear error after 3 seconds
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminSession = JSON.parse(localStorage.getItem('adminSession') || '{}');
+            if (adminSession.isAdmin && adminSession.sessionExpiry > new Date().getTime()) {
+                window.location.href = '/admin-panel.html';
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-white">
+                    Admin Login
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-400">
+                    Secure access for administrators only
+                </p>
+            </div>
+            
+            <!-- Admin Login Form -->
+            <form class="mt-8 space-y-6" onsubmit="adminLogin(event)">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email" class="sr-only">Email address</label>
+                        <input id="email" name="email" type="email" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Admin Email">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" required
+                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-700 bg-gray-800 placeholder-gray-500 text-white rounded-b-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                            placeholder="Admin Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-purple-500 group-hover:text-purple-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        Sign in to Admin Panel
+                    </button>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="hidden text-red-500 text-center mt-2"></div>
+            </form>
+
+            <!-- Back to Main Site -->
+            <div class="text-center">
+                <a href="/" class="text-purple-500 hover:text-purple-400 text-sm">
+                    ← Back to main site
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Features -->
+    <script>
+        // Prevent right click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Prevent F12 and other dev tools shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.keyCode === 123 || // F12
+                (event.ctrlKey && event.shiftKey && event.keyCode === 73) || // Ctrl+Shift+I
+                (event.ctrlKey && event.shiftKey && event.keyCode === 74) || // Ctrl+Shift+J
+                (event.ctrlKey && event.keyCode === 85)) { // Ctrl+U
+                event.preventDefault();
+            }
+        });
+
+        // Clear credentials on page close/refresh
+        window.addEventListener('beforeunload', () => {
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // Session timeout check
+        setInterval(() => {
+            const adminSession = JSON.parse(localStorage.getItem('adminSession') || '{}');
+            if (adminSession.isAdmin && adminSession.sessionExpiry < new Date().getTime()) {
+                localStorage.removeItem('adminSession');
+                if (window.location.pathname !== '/admin-login.html') {
+                    window.location.href = '/admin-login.html';
+                }
+            }
+        }, 60000); // Check every minute
+    </script>
+</body>
+</html>
