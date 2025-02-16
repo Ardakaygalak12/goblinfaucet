@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BonkFaucet - Earn Free BONK Tokens</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <img class="h-12 w-12" src="/images/logo.png" alt="BonkFaucet Logo">
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Features</a>
+                            <a href="#how-it-works" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">How It Works</a>
+                            <a href="#rewards" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Rewards</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <button id="connect-wallet" onclick="connectWallet()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm font-medium">
+                        Connect Wallet
+                    </button>
+                    <a href="/login.html" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-medium">Login</a>
+                    <a href="/register.html" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm font-medium">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-gray-900 overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                    <div class="sm:text-center lg:text-left">
+                        <h1 class="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                            <span class="block">Earn Free</span>
+                            <span class="block text-purple-600">BONK Tokens</span>
+                        </h1>
+                        <p class="mt-3 text-base text-gray-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                            Join thousands of users earning BONK tokens daily through our faucet, shortlinks, and PTC ads. Connect your Phantom wallet and start earning today!
+                        </p>
+                        <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                            <div class="rounded-md shadow">
+                                <a href="/register.html" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 md:py-4 md:text-lg md:px-10">
+                                    Start Earning Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="features" class="py-12 bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">Features</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
+                    Multiple Ways to Earn
+                </p>
+            </div>
+
+            <div class="mt-10">
+                <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
+                    <div class="relative">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white">
+                            <i class="fas fa-faucet text-xl"></i>
+                        </div>
+                        <p class="ml-16 text-lg leading-6 font-medium text-white">Daily Faucet</p>
+                        <p class="mt-2 ml-16 text-base text-gray-300">
+                            Claim free BONK tokens every day from our faucet. No minimum withdrawal limits!
+                        </p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white">
+                            <i class="fas fa-link text-xl"></i>
+                        </div>
+                        <p class="ml-16 text-lg leading-6 font-medium text-white">Shortlinks</p>
+                        <p class="mt-2 ml-16 text-base text-gray-300">
+                            Complete shortlinks to earn additional BONK tokens. New links added daily!
+                        </p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white">
+                            <i class="fas fa-ad text-xl"></i>
+                        </div>
+                        <p class="ml-16 text-lg leading-6 font-medium text-white">PTC Ads</p>
+                        <p class="mt-2 ml-16 text-base text-gray-300">
+                            View PTC ads to earn more tokens. Quick and easy rewards!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div id="how-it-works" class="py-12 bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-purple-600 font-semibold tracking-wide uppercase">How It Works</h2>
+                <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
+                    Start Earning in 3 Simple Steps
+                </p>
+            </div>
+
+            <div class="mt-10">
+                <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
+                    <div class="text-center">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white mx-auto">
+                            <span class="text-lg font-bold">1</span>
+                        </div>
+                        <h3 class="mt-4 text-lg leading-6 font-medium text-white">Create Account</h3>
+                        <p class="mt-2 text-base text-gray-300">
+                            Register for free and verify your email address
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white mx-auto">
+                            <span class="text-lg font-bold">2</span>
+                        </div>
+                        <h3 class="mt-4 text-lg leading-6 font-medium text-white">Connect Wallet</h3>
+                        <p class="mt-2 text-base text-gray-300">
+                            Connect your Phantom wallet to receive payments
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white mx-auto">
+                            <span class="text-lg font-bold">3</span>
+                        </div>
+                        <h3 class="mt-4 text-lg leading-6 font-medium text-white">Start Earning</h3>
+                        <p class="mt-2 text-base text-gray-300">
+                            Complete tasks and earn BONK tokens instantly
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div id="rewards" class="bg-gray-800 pt-12 sm:pt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
+                    Trusted by Thousands of Users
+                </h2>
+                <p class="mt-3 text-xl text-gray-300 sm:mt-4">
+                    Join our growing community and start earning today
+                </p>
+            </div>
+        </div>
+        <div class="mt-10 pb-12 bg-gray-800 sm:pb-16">
+            <div class="relative">
+                <div class="absolute inset-0 h-1/2 bg-gray-800"></div>
+                <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="rounded-lg bg-gray-700 shadow-lg sm:grid sm:grid-cols-3">
+        <div class="flex flex-col border-b border-gray-600 p-6 text-center sm:border-0 sm:border-r">
+            <p class="text-5xl font-extrabold text-white"><span data-stat="dailyClaims">0</span>+</p>
+            <p class="mt-2 text-sm font-medium text-gray-300">Daily Claims</p>
+        </div>
+        <div class="flex flex-col border-t border-b border-gray-600 p-6 text-center sm:border-0 sm:border-l sm:border-r">
+            <p class="text-5xl font-extrabold text-white"><span data-stat="totalPaid">0</span>+</p>
+            <p class="mt-2 text-sm font-medium text-gray-300">BONK Paid</p>
+        </div>
+        <div class="flex flex-col border-t border-gray-600 p-6 text-center sm:border-0 sm:border-l">
+            <p class="text-5xl font-extrabold text-white"><span data-stat="activeUsers">0</span>+</p>
+            <p class="mt-2 text-sm font-medium text-gray-300">Active Users</p>
+        </div>
+    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="mt-8 border-t border-gray-700 pt-8 md:flex md:items-center md:justify-between">
+                <div class="flex space-x-6 md:order-2">
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-telegram text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                        <i class="fab fa-discord text-xl"></i>
+                    </a>
+                </div>
+                <p class="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
+                    &copy; 2024 BonkFaucet. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+      <script>
+    // Database configuration
+    const DATABASE_CONFIG = {
+        BIN_ID: "67b0a195ad19ca34f804ba90",
+        API_KEY: "$2a$10$m3ykh1NKxmtQDVM140H6TOTqsemkiBEdfdQnG/ApyhjJ1Duj2Ri6W",
+        BASE_URL: "https://api.jsonbin.io/v3/b"
+    };
+
+    // Utility functions
+    const getStats = async () => {
+        try {
+            const response = await fetch(`${DATABASE_CONFIG.BASE_URL}/${DATABASE_CONFIG.BIN_ID}/latest`, {
+                headers: {
+                    'X-Master-Key': DATABASE_CONFIG.API_KEY
+                }
+            });
+            
+            if (!response.ok) throw new Error('Failed to fetch stats');
+            
+            const data = await response.json();
+            return data.record.statistics;
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+            return null;
+        }
+    };
+
+    // Animation and UI functions
+    const updateCounters = async () => {
+        const stats = await getStats();
+        if (!stats) return;
+
+        const animateValue = (element, start, end, duration) => {
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const updateDisplay = () => {
+                element.textContent = Math.floor(current).toLocaleString();
+                if (current < end) {
+                    current += increment;
+                    requestAnimationFrame(updateDisplay);
+                } else {
+                    element.textContent = Math.floor(end).toLocaleString();
+                }
+            };
+            
+            updateDisplay();
+        };
+
+        // Update statistics with animation
+        document.querySelectorAll('[data-stat]').forEach(element => {
+            const stat = element.getAttribute('data-stat');
+            const value = stats[stat] || 0;
+            animateValue(element, 0, value, 2000);
+        });
+    };
+
+    // Smooth scroll for navigation
+    document.addEventListener('DOMContentLoaded', () => {
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize counters
+        updateCounters();
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Add scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-section').forEach((section) => {
+            observer.observe(section);
+        });
+    });
+
+    // Phantom Wallet Connection
+    let phantomProvider = null;
+    let publicKey = null;
+
+    const getProvider = () => {
+        if ('phantom' in window) {
+            const provider = window.phantom?.solana;
+            if (provider?.isPhantom) {
+                return provider;
+            }
+        }
+        window.open('https://phantom.app/', '_blank');
+    };
+
+    const connectWallet = async () => {
+        try {
+            phantomProvider = getProvider();
+            if (!phantomProvider) return;
+
+            const { publicKey } = await phantomProvider.connect();
+            console.log('Connected with:', publicKey.toString());
+            
+            // Update UI to show connected state
+            const connectButton = document.getElementById('connect-wallet');
+            if (connectButton) {
+                connectButton.textContent = 'Wallet Connected';
+                connectButton.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                connectButton.classList.add('bg-green-600', 'hover:bg-green-700');
+            }
+        } catch (err) {
+            console.error('Error connecting to wallet:', err);
+        }
+    };
+
+    // Add styles for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-section {
+            opacity: 0;
+        }
+    `;
+    document.head.appendChild(style);
+    </script>
+</body>
+</html>
