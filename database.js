@@ -1,3 +1,4 @@
+// database.js
 const DATABASE = {
     config: {
         binId: '67b0a195ad19ca34f804ba90',
@@ -8,40 +9,50 @@ const DATABASE = {
                 maxDuration: 180
             },
             systemSettings: {
-                minWithdrawAmount: 20 * 100, // 20 dolar minimum (cent cinsinden)
+                minWithdrawAmount: 20 * 100,
                 maxDailyEarnings: 5000,
-                maxDailyWithdrawals: 1, // Günde maksimum 1 çekim
+                maxDailyWithdrawals: 1,
                 referralBonus: 1000
             }
         },
         phantom: {
             network: 'mainnet-beta',
             rpcUrl: 'https://api.mainnet-beta.solana.com',
-            bonkMint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', // BONK token mint adresi
+            bonkMint: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
             bonkDecimals: 5,
-            dollarPerBonk: 0.00001234 // BONK/USD kuru (örnek değer)
+            dollarPerBonk: 0.00001234
         }
     },
 
     api: {
         baseUrl: 'https://api.jsonbin.io/v3/b',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': '$2a$10$m3ykh1NKxmtQDVM140H6TOTqsemkiBEdfdQnG/ApyhjJ1Duj2Ri6W',
-            'X-Bin-Meta': false
+        headers: null,
+
+        initHeaders() {
+            this.headers = {
+                'Content-Type': 'application/json',
+                'X-Master-Key': DATABASE.config.apiKey,
+                'X-Bin-Meta': false
+            };
         },
 
         async getAllData() {
             try {
+                if (!this.headers) this.initHeaders();
+                
                 const response = await fetch(`${this.baseUrl}/${DATABASE.config.binId}/latest`, {
-                    headers: this.headers
+                    headers: this.headers,
+                    method: 'GET'
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 return data.record || this.getDefaultData();
             } catch (error) {
-                console.error('Data fetch error:', error);
+                console.error('Veri çekme hatası:', error);
                 return this.getDefaultData();
             }
         },
@@ -66,16 +77,23 @@ const DATABASE = {
 
         async updateData(data) {
             try {
+                if (!this.headers) this.initHeaders();
+                if (!data) throw new Error('Güncellenecek veri gerekli');
+                
                 const response = await fetch(`${this.baseUrl}/${DATABASE.config.binId}`, {
                     method: 'PUT',
                     headers: this.headers,
                     body: JSON.stringify(data)
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                return result;
             } catch (error) {
-                console.error('Data update error:', error);
+                console.error('Veri güncelleme hatası:', error);
                 return null;
             }
         }
@@ -83,18 +101,28 @@ const DATABASE = {
 
     users: {
         async getUser(userId) {
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+            
             const data = await DATABASE.api.getAllData();
             return data.users[userId] || null;
         },
 
         async createUser(userData) {
+            if (!userData || !userData.userId || !userData.email) {
+                throw new Error('Geçersiz kullanıcı verisi');
+            }
+
             try {
                 const data = await DATABASE.api.getAllData();
                 
+                if (data.users[userData.userId]) {
+                    throw new Error('Bu kullanıcı zaten mevcut');
+                }
+
                 const newUser = {
                     userId: userData.userId,
                     email: userData.email,
-                    phantomWallet: userData.phantomWallet,
+                    phantomWallet: userData.phantomWallet || null,
                     bonkBalance: 0,
                     joinDate: new Date().toISOString(),
                     lastActivity: new Date().toISOString(),
@@ -108,74 +136,117 @@ const DATABASE = {
 
                 data.users[userData.userId] = newUser;
                 data.statistics.global.totalUsers++;
-                await DATABASE.api.updateData(data);
+                
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Kullanıcı kaydedilemedi');
+                
                 return newUser;
             } catch (error) {
-                console.error('User creation error:', error);
-                return null;
+                console.error('Kullanıcı oluşturma hatası:', error);
+                throw error;
             }
         },
 
         async updateUserBalance(userId, amount) {
-            const data = await DATABASE.api.getAllData();
-            if (!data.users[userId]) return false;
+            if (!userId || typeof amount !== 'number') {
+                throw new Error('Geçersiz parametreler');
+            }
 
-            data.users[userId].bonkBalance = (data.users[userId].bonkBalance || 0) + amount;
-            data.users[userId].lastActivity = new Date().toISOString();
-            data.statistics.global.totalBonk += amount;
+            try {
+                const data = await DATABASE.api.getAllData();
+                if (!data.users[userId]) return false;
 
-            await DATABASE.api.updateData(data);
-            return true;
+                const user = data.users[userId];
+                const oldBalance = user.bonkBalance || 0;
+                user.bonkBalance = oldBalance + amount;
+                
+                if (user.bonkBalance < 0) user.bonkBalance = 0;
+
+                const today = new Date().toISOString().split('T')[0];
+                if (!user.earnings.daily[today]) {
+                    user.earnings.daily[today] = 0;
+                }
+                if (amount > 0) {
+                    user.earnings.daily[today] += amount;
+                }
+
+                user.lastActivity = new Date().toISOString();
+                data.statistics.global.totalBonk += amount;
+
+                const updateResult = await DATABASE.api.updateData(data);
+                return !!updateResult;
+            } catch (error) {
+                console.error('Bakiye güncelleme hatası:', error);
+                return false;
+            }
         },
 
         async updatePhantomWallet(userId, walletAddress) {
-            const data = await DATABASE.api.getAllData();
-            if (!data.users[userId]) return false;
+            if (!userId || !walletAddress) {
+                throw new Error('Kullanıcı ID ve cüzdan adresi gerekli');
+            }
 
-            data.users[userId].phantomWallet = walletAddress;
-            await DATABASE.api.updateData(data);
-            return true;
+            try {
+                const data = await DATABASE.api.getAllData();
+                if (!data.users[userId]) return false;
+
+                data.users[userId].phantomWallet = walletAddress;
+                const updateResult = await DATABASE.api.updateData(data);
+                return !!updateResult;
+            } catch (error) {
+                console.error('Cüzdan güncelleme hatası:', error);
+                return false;
+            }
         }
     },
 
     phantom: {
         async connectWallet() {
-            try {
-                if (!window.solana || !window.solana.isPhantom) {
-                    throw new Error('Phantom wallet is not installed!');
-                }
+            if (typeof window === 'undefined' || !window.solana || !window.solana.isPhantom) {
+                throw new Error('Phantom cüzdan yüklü değil!');
+            }
 
+            try {
                 const response = await window.solana.connect();
                 return response.publicKey.toString();
             } catch (error) {
-                console.error('Phantom connection error:', error);
+                console.error('Phantom bağlantı hatası:', error);
                 throw error;
             }
         },
 
         async initiateWithdrawal(userId, amountInDollars) {
             try {
+                if (!userId || typeof amountInDollars !== 'number') {
+                    throw new Error('Geçersiz parametreler');
+                }
+
                 const user = await DATABASE.users.getUser(userId);
-                if (!user) throw new Error('User not found');
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 const today = new Date().toISOString().split('T')[0];
                 const withdrawalCount = await this.getDailyWithdrawalCount(userId, today);
+                
                 if (withdrawalCount >= DATABASE.config.adminSettings.systemSettings.maxDailyWithdrawals) {
-                    throw new Error('Daily withdrawal limit reached');
+                    throw new Error('Günlük çekim limiti aşıldı');
                 }
 
                 if (amountInDollars < (DATABASE.config.adminSettings.systemSettings.minWithdrawAmount / 100)) {
-                    throw new Error(`Minimum withdrawal amount is $${DATABASE.config.adminSettings.systemSettings.minWithdrawAmount / 100}`);
+                    throw new Error(`Minimum çekim tutarı $${DATABASE.config.adminSettings.systemSettings.minWithdrawAmount / 100}`);
                 }
 
                 const bonkAmount = Math.floor(amountInDollars / DATABASE.config.phantom.dollarPerBonk);
 
                 if (user.bonkBalance < bonkAmount) {
-                    throw new Error('Insufficient balance');
+                    throw new Error('Yetersiz bakiye');
                 }
 
                 if (!user.phantomWallet) {
-                    throw new Error('No Phantom wallet connected');
+                    throw new Error('Phantom cüzdan bağlı değil');
+                }
+
+                if (!window.solana || !window.solanaWeb3 || !window.splToken) {
+                    throw new Error('Gerekli web3 kütüphaneleri yüklü değil');
                 }
 
                 const connection = new window.solanaWeb3.Connection(
@@ -185,7 +256,6 @@ const DATABASE = {
 
                 const transaction = new window.solanaWeb3.Transaction();
                 
-                // BONK token transfer talimatı
                 const transferInstruction = window.splToken.Token.createTransferInstruction(
                     new window.solanaWeb3.PublicKey(DATABASE.config.phantom.bonkMint),
                     window.solana.publicKey,
@@ -199,7 +269,6 @@ const DATABASE = {
                 transaction.feePayer = window.solana.publicKey;
                 transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
 
-                // Withdrawal kaydı oluştur
                 const withdrawalId = `WD_${Date.now()}_${userId}`;
                 await this.saveWithdrawalRecord(userId, {
                     withdrawalId,
@@ -217,22 +286,28 @@ const DATABASE = {
                     bonkAmount
                 };
             } catch (error) {
-                console.error('Withdrawal initiation error:', error);
+                console.error('Çekim başlatma hatası:', error);
                 throw error;
             }
         },
 
         async completeWithdrawal(userId, withdrawalId, signature) {
             try {
+                if (!userId || !withdrawalId || !signature) {
+                    throw new Error('Geçersiz parametreler');
+                }
+
                 const data = await DATABASE.api.getAllData();
                 const withdrawal = data.withdrawals[userId]?.find(w => w.withdrawalId === withdrawalId);
                 
-                if (!withdrawal) throw new Error('Withdrawal not found');
+                if (!withdrawal) throw new Error('Çekim kaydı bulunamadı');
+                if (withdrawal.status === 'completed') throw new Error('Bu çekim zaten tamamlanmış');
 
                 const connection = new window.solanaWeb3.Connection(
                     DATABASE.config.phantom.rpcUrl,
                     'confirmed'
                 );
+                
                 const status = await connection.getSignatureStatus(signature);
 
                 if (status?.value?.confirmationStatus === 'confirmed') {
@@ -244,43 +319,66 @@ const DATABASE = {
                     await DATABASE.api.updateData(data);
                     return true;
                 } else {
-                    throw new Error('Transaction failed');
+                    throw new Error('İşlem onaylanmadı');
                 }
             } catch (error) {
-                console.error('Withdrawal completion error:', error);
+                console.error('Çekim tamamlama hatası:', error);
                 throw error;
             }
         },
 
         async getDailyWithdrawalCount(userId, date) {
-            const data = await DATABASE.api.getAllData();
-            return (data.withdrawals[userId] || [])
-                .filter(w => w.date === date && w.status === 'completed')
-                .length;
+            if (!userId || !date) throw new Error('Geçersiz parametreler');
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                return (data.withdrawals[userId] || [])
+                    .filter(w => w.date === date && w.status === 'completed')
+                    .length;
+            } catch (error) {
+                console.error('Çekim sayısı kontrol hatası:', error);
+                return 0;
+            }
         },
 
         async saveWithdrawalRecord(userId, record) {
-            const data = await DATABASE.api.getAllData();
-            if (!data.withdrawals[userId]) {
-                data.withdrawals[userId] = [];
+            if (!userId || !record) throw new Error('Geçersiz parametreler');
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                if (!data.withdrawals[userId]) {
+                    data.withdrawals[userId] = [];
+                }
+                data.withdrawals[userId].push(record);
+                await DATABASE.api.updateData(data);
+            } catch (error) {
+                console.error('Çekim kaydı oluşturma hatası:', error);
+                throw error;
             }
-            data.withdrawals[userId].push(record);
-            await DATABASE.api.updateData(data);
         },
 
         async getWithdrawalHistory(userId) {
-            const data = await DATABASE.api.getAllData();
-            return data.withdrawals[userId] || [];
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                return data.withdrawals[userId] || [];
+            } catch (error) {
+                console.error('Çekim geçmişi çekme hatası:', error);
+                return [];
+            }
         }
     },
 
     contentManagement: {
         async createPtcAd(adminId, adData) {
+            if (!adminId || !adData) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 
                 const newAd = {
-                    id: Date.now().toString(),
+                    id: `ad_${Date.now()}`,
                     title: adData.title,
                     url: adData.url,
                     bonkReward: parseInt(adData.bonkReward),
@@ -299,20 +397,23 @@ const DATABASE = {
                 };
 
                 data.ptcAds.push(newAd);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('PTC reklamı kaydedilemedi');
+
                 return newAd;
             } catch (error) {
-                console.error('PTC ad creation error:', error);
-                return null;
+                console.error('PTC reklam oluşturma hatası:', error);
+                throw error;
             }
         },
 
         async createShortlink(adminId, linkData) {
+            if (!adminId || !linkData) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 
-                const newLink = {
-                    id: Date.now().toString(),
+                const newLink = {id: `link_${Date.now()}`,
                     title: linkData.title,
                     url: linkData.url,
                     bonkReward: parseInt(linkData.bonkReward),
@@ -330,20 +431,24 @@ const DATABASE = {
                 };
 
                 data.shortlinks.push(newLink);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Shortlink kaydedilemedi');
+
                 return newLink;
             } catch (error) {
-                console.error('Shortlink creation error:', error);
-                return null;
+                console.error('Shortlink oluşturma hatası:', error);
+                throw error;
             }
         },
 
         async createTask(adminId, taskData) {
+            if (!adminId || !taskData) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 
                 const newTask = {
-                    id: Date.now().toString(),
+                    id: `task_${Date.now()}`,
                     title: taskData.title,
                     description: taskData.description,
                     bonkReward: parseInt(taskData.bonkReward),
@@ -362,30 +467,110 @@ const DATABASE = {
                 };
 
                 data.tasks.push(newTask);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Görev kaydedilemedi');
+
                 return newTask;
             } catch (error) {
-                console.error('Task creation error:', error);
-                return null;
+                console.error('Görev oluşturma hatası:', error);
+                throw error;
+            }
+        },
+
+        async updateContent(type, id, updateData) {
+            if (!type || !id || !updateData) throw new Error('Geçersiz parametreler');
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                let contentArray;
+
+                switch(type) {
+                    case 'ptcAd':
+                        contentArray = data.ptcAds;
+                        break;
+                    case 'shortlink':
+                        contentArray = data.shortlinks;
+                        break;
+                    case 'task':
+                        contentArray = data.tasks;
+                        break;
+                    default:
+                        throw new Error('Geçersiz içerik tipi');
+                }
+
+                const index = contentArray.findIndex(item => item.id === id);
+                if (index === -1) throw new Error('İçerik bulunamadı');
+
+                contentArray[index] = { ...contentArray[index], ...updateData };
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('İçerik güncellenemedi');
+
+                return contentArray[index];
+            } catch (error) {
+                console.error('İçerik güncelleme hatası:', error);
+                throw error;
+            }
+        },
+
+        async deleteContent(type, id) {
+            if (!type || !id) throw new Error('Geçersiz parametreler');
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                let contentArray;
+
+                switch(type) {
+                    case 'ptcAd':
+                        contentArray = data.ptcAds;
+                        break;
+                    case 'shortlink':
+                        contentArray = data.shortlinks;
+                        break;
+                    case 'task':
+                        contentArray = data.tasks;
+                        break;
+                    default:
+                        throw new Error('Geçersiz içerik tipi');
+                }
+
+                const index = contentArray.findIndex(item => item.id === id);
+                if (index === -1) throw new Error('İçerik bulunamadı');
+
+                contentArray.splice(index, 1);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('İçerik silinemedi');
+
+                return true;
+            } catch (error) {
+                console.error('İçerik silme hatası:', error);
+                throw error;
             }
         }
     },
 
     activity: {
         async recordPtcView(userId, adId) {
+            if (!userId || !adId) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 const ad = data.ptcAds.find(a => a.id === adId);
-                if (!ad || ad.status !== 'active') return false;
+                if (!ad || ad.status !== 'active') throw new Error('Reklam bulunamadı veya aktif değil');
 
                 const user = data.users[userId];
-                if (!user) return false;
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 const today = new Date().toISOString().split('T')[0];
                 if (!user.viewedAds) user.viewedAds = [];
                 
                 const todayViews = user.viewedAds.filter(v => v.date === today).length;
-                if (todayViews >= ad.settings.dailyLimit) return false;
+                if (todayViews >= ad.settings.dailyLimit) {
+                    throw new Error('Günlük görüntüleme limiti aşıldı');
+                }
+
+                // Kazanç limiti kontrolü
+                const canEarn = await DATABASE.earnings.checkEarningLimit(userId);
+                if (!canEarn) throw new Error('Günlük kazanç limiti aşıldı');
 
                 user.viewedAds.push({
                     adId,
@@ -400,103 +585,124 @@ const DATABASE = {
                 ad.stats.bonkPaid += ad.bonkReward;
 
                 await DATABASE.users.updateUserBalance(userId, ad.bonkReward);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Görüntüleme kaydedilemedi');
+
                 return true;
             } catch (error) {
-                console.error('PTC view record error:', error);
-                return false;
+                console.error('PTC görüntüleme kayıt hatası:', error);
+                throw error;
             }
         },
 
         async recordShortlinkClick(userId, linkId) {
+            if (!userId || !linkId) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 const link = data.shortlinks.find(l => l.id === linkId);
-                if (!link || link.status !== 'active') return false;
+                if (!link || link.status !== 'active') throw new Error('Link bulunamadı veya aktif değil');
 
                 const user = data.users[userId];
-                if (!user) return false;
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
-                if (!user.clickedLinks)
-                    user.clickedLinks = [];
+                if (!user.clickedLinks) user.clickedLinks = [];
                 const today = new Date().toISOString().split('T')[0];
 
-                // Record click
+                // Kazanç limiti kontrolü
+                const canEarn = await DATABASE.earnings.checkEarningLimit(userId);
+                if (!canEarn) throw new Error('Günlük kazanç limiti aşıldı');
+
                 user.clickedLinks.push({
                     linkId,
                     date: today,
                     timestamp: new Date().toISOString()
                 });
 
-                // Update link stats
                 link.stats.totalClicks++;
                 if (!user.clickedLinks.some(c => c.linkId === linkId && c.date !== today)) {
                     link.stats.uniqueClicks++;
                 }
                 link.stats.bonkPaid += link.bonkReward;
 
-                // Update user balance
                 await DATABASE.users.updateUserBalance(userId, link.bonkReward);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Tıklama kaydedilemedi');
+
                 return true;
             } catch (error) {
-                console.error('Shortlink click record error:', error);
-                return false;
+                console.error('Shortlink tıklama kayıt hatası:', error);
+                throw error;
             }
         },
 
         async recordTaskCompletion(userId, taskId, proof = null) {
+            if (!userId || !taskId) throw new Error('Geçersiz parametreler');
+
             try {
                 const data = await DATABASE.api.getAllData();
                 const task = data.tasks.find(t => t.id === taskId);
-                if (!task || task.status !== 'active') return false;
+                if (!task || task.status !== 'active') throw new Error('Görev bulunamadı veya aktif değil');
 
                 const user = data.users[userId];
-                if (!user) return false;
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 if (!user.completedTasks) user.completedTasks = [];
-                if (user.completedTasks.some(t => t.taskId === taskId)) return false;
+                if (user.completedTasks.some(t => t.taskId === taskId)) {
+                    throw new Error('Bu görev zaten tamamlanmış');
+                }
 
-                // Record completion
+                // Kazanç limiti kontrolü
+                const canEarn = await DATABASE.earnings.checkEarningLimit(userId);
+                if (!canEarn) throw new Error('Günlük kazanç limiti aşıldı');
+
+                if (task.settings.proofRequired && !proof) {
+                    throw new Error('Görev kanıtı gerekli');
+                }
+
                 user.completedTasks.push({
                     taskId,
                     proof,
                     date: new Date().toISOString()
                 });
 
-                // Update task stats
                 task.stats.totalCompletions++;
                 task.stats.bonkPaid += task.bonkReward;
 
-                // Update user balance
                 await DATABASE.users.updateUserBalance(userId, task.bonkReward);
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('Görev tamamlama kaydedilemedi');
+
                 return true;
             } catch (error) {
-                console.error('Task completion record error:', error);
-                return false;
+                console.error('Görev tamamlama kayıt hatası:', error);
+                throw error;
             }
         }
     },
 
     earnings: {
         async getDailyEarnings(userId) {
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+
             try {
                 const user = await DATABASE.users.getUser(userId);
-                if (!user) return 0;
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 const today = new Date().toISOString().split('T')[0];
                 return user.earnings?.daily?.[today] || 0;
             } catch (error) {
-                console.error('Daily earnings check error:', error);
+                console.error('Günlük kazanç kontrolü hatası:', error);
                 return 0;
             }
         },
 
         async getEarningsHistory(userId) {
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+
             try {
                 const user = await DATABASE.users.getUser(userId);
-                if (!user) return [];
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 const history = [];
                 for (const [date, amount] of Object.entries(user.earnings?.daily || {})) {
@@ -509,17 +715,19 @@ const DATABASE = {
 
                 return history.sort((a, b) => new Date(b.date) - new Date(a.date));
             } catch (error) {
-                console.error('Earnings history error:', error);
+                console.error('Kazanç geçmişi çekme hatası:', error);
                 return [];
             }
         },
 
         async checkEarningLimit(userId) {
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+
             try {
                 const dailyEarnings = await this.getDailyEarnings(userId);
                 return dailyEarnings < DATABASE.config.adminSettings.systemSettings.maxDailyEarnings;
             } catch (error) {
-                console.error('Earning limit check error:', error);
+                console.error('Kazanç limiti kontrolü hatası:', error);
                 return false;
             }
         }
@@ -531,7 +739,7 @@ const DATABASE = {
                 const data = await DATABASE.api.getAllData();
                 const today = new Date().toISOString().split('T')[0];
 
-                // Calculate active users
+                // Aktif kullanıcıları hesapla
                 const activeUsers = Object.values(data.users).filter(user => {
                     const lastActivity = new Date(user.lastActivity);
                     const now = new Date();
@@ -539,10 +747,10 @@ const DATABASE = {
                     return diffHours <= 24;
                 }).length;
 
-                // Update global stats
+                // Global istatistikleri güncelle
                 data.statistics.global.activeUsers = activeUsers;
                 
-                // Update daily stats
+                // Günlük istatistikleri güncelle
                 if (!data.statistics.daily[today]) {
                     data.statistics.daily[today] = {
                         totalEarnings: 0,
@@ -555,18 +763,22 @@ const DATABASE = {
 
                 data.statistics.daily[today].activeUsers = activeUsers;
 
-                await DATABASE.api.updateData(data);
+                const updateResult = await DATABASE.api.updateData(data);
+                if (!updateResult) throw new Error('İstatistikler güncellenemedi');
+
                 return data.statistics;
             } catch (error) {
-                console.error('Stats update error:', error);
-                return null;
+                console.error('İstatistik güncelleme hatası:', error);
+                throw error;
             }
         },
 
         async getUserStats(userId) {
+            if (!userId) throw new Error('Kullanıcı ID gerekli');
+
             try {
                 const user = await DATABASE.users.getUser(userId);
-                if (!user) return null;
+                if (!user) throw new Error('Kullanıcı bulunamadı');
 
                 return {
                     totalEarned: user.bonkBalance,
@@ -576,12 +788,166 @@ const DATABASE = {
                     dollarValue: user.bonkBalance * DATABASE.config.phantom.dollarPerBonk
                 };
             } catch (error) {
-                console.error('User stats error:', error);
+                console.error('Kullanıcı istatistikleri çekme hatası:', error);
                 return null;
             }
         }
+    },
+
+    init() {
+        // Database'i initialize et
+        this.api.initHeaders();
+        
+        // Global hata yakalayıcı
+        if (typeof window !== 'undefined') {
+            window.onerror = function(msg, url, line, col, error) {
+                console.error('Global hata:', {msg, url, line, col, error});
+                return false;
+            };
+
+            // Bağlantı durumu kontrolü
+            window.addEventListener('online', () => {
+                console.log('İnternet bağlantısı kuruldu');
+                this.api.getAllData(); // Verileri yenile
+            });
+
+            window.addEventListener('offline', () => {
+                console.log('İnternet bağlantısı kesildi');
+            });
+        }
+
+        return this;
+    },
+
+    utils: {
+        generateId(prefix = 'id') {
+            return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        },
+
+        validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        },
+
+        validateWalletAddress(address) {
+            // Solana cüzdan adresi validasyonu
+            return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+        },
+
+        async sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
+
+        async retry(fn, maxAttempts = 3, delay = 1000) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (attempt === maxAttempts) throw error;
+                    await this.sleep(delay * attempt);
+                }
+            }
+        },
+
+        formatBonkAmount(amount) {
+            return amount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+
+        formatDollarAmount(bonkAmount) {
+            const dollarValue = bonkAmount * DATABASE.config.phantom.dollarPerBonk;
+            return dollarValue.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+        },
+
+        getDateString(date = new Date()) {
+            return date.toISOString().split('T')[0];
+        },
+
+        validateUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+    },
+
+    async checkSystemStatus() {
+        try {
+            // API bağlantı kontrolü
+            const apiCheck = await this.api.getAllData();
+            if (!apiCheck) throw new Error('API bağlantısı başarısız');
+
+            // Phantom cüzdan kontrolü
+            const phantomCheck = typeof window !== 'undefined' && 
+                               window.solana && 
+                               window.solana.isPhantom;
+
+            // Web3 kütüphaneleri kontrolü
+            const web3Check = typeof window !== 'undefined' && 
+                            window.solanaWeb3 && 
+                            window.splToken;
+
+            return {
+                status: 'operational',
+                api: !!apiCheck,
+                phantom: phantomCheck,
+                web3: web3Check,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('Sistem durum kontrolü hatası:', error);
+            return {
+                status: 'error',
+                error: error.message,
+                timestamp: new Date().toISOString()
+            };
+        }
+    },
+
+    errorHandler: {
+        handle(error, context = '') {
+            console.error(`Hata [${context}]:`, error);
+
+            let userMessage = 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
+            let errorCode = 'UNKNOWN_ERROR';
+
+            if (error.message.includes('Yetersiz bakiye')) {
+                userMessage = 'Hesabınızda yeterli BONK bulunmuyor.';
+                errorCode = 'INSUFFICIENT_BALANCE';
+            } else if (error.message.includes('Günlük limit')) {
+                userMessage = 'Günlük işlem limitinize ulaştınız.';
+                errorCode = 'DAILY_LIMIT_REACHED';
+            } else if (error.message.includes('bulunamadı')) {
+                userMessage = 'İstenen kayıt bulunamadı.';
+                errorCode = 'NOT_FOUND';
+            } else if (error.message.includes('Phantom')) {
+                userMessage = 'Phantom cüzdan bağlantısında bir sorun oluştu.';
+                errorCode = 'PHANTOM_ERROR';
+            } else if (error.message.includes('HTTP error')) {
+                userMessage = 'Sunucu bağlantısında bir sorun oluştu.';
+                errorCode = 'API_ERROR';
+            }
+
+            return {
+                message: userMessage,
+                code: errorCode,
+                originalError: error.message
+            };
+        }
     }
 };
+
+// Otomatik başlatma
+if (typeof window !== 'undefined') {
+    DATABASE.init();
+}
 
 // Node.js için export
 if (typeof module !== 'undefined' && module.exports) {
