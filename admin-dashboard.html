@@ -4,382 +4,491 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BONK Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4F46E5;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --bg-primary: #F9FAFB;
+            --bg-secondary: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
+            background-color: var(--bg-primary);
         }
-        .transition-card {
-            transition: all 0.3s ease;
+
+        .navbar {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .transition-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .item-list {
+            margin-top: 1rem;
+        }
+
+        .item {
+            background: var(--bg-primary);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <img src="/api/placeholder/32/32" alt="Logo" class="h-8 w-8 mr-2">
-                        <span class="font-bold text-xl text-gray-800">BONK Admin</span>
-                    </div>
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="#" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Dashboard
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Content
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Users
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Reports
-                        </a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span id="lastSync" class="text-sm text-gray-500"></span>
-                    <button onclick="refreshData()" class="p-2 rounded-full hover:bg-gray-100">
-                        <i data-feather="refresh-cw" class="w-5 h-5 text-gray-500"></i>
-                    </button>
-                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">
-                        Logout
-                    </button>
-                </div>
+    <nav class="navbar">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>BONK Admin Panel</h1>
+                <button class="btn btn-primary" onclick="refreshData()">Refresh Data</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- Overview Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
-            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-gray-500">Total Users</h3>
-                    <span class="p-2 bg-blue-50 rounded-md">
-                        <i data-feather="users" class="w-5 h-5 text-blue-500"></i>
-                    </span>
-                </div>
-                <div class="flex items-baseline">
-                    <p class="text-2xl font-semibold text-gray-900" id="totalUsers">-</p>
-                    <p class="ml-2 text-sm text-green-600 font-medium" id="userGrowth">
-                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
-                        <span>-</span>
-                    </p>
-                </div>
+    <div class="container">
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <p id="totalUsers">Loading...</p>
             </div>
-
-            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-gray-500">Total BONK</h3>
-                    <span class="p-2 bg-indigo-50 rounded-md">
-                        <i data-feather="dollar-sign" class="w-5 h-5 text-indigo-500"></i>
-                    </span>
-                </div>
-                <div class="flex items-baseline">
-                    <p class="text-2xl font-semibold text-gray-900" id="totalBonk">-</p>
-                    <p class="ml-2 text-sm text-green-600 font-medium" id="bonkGrowth">
-                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
-                        <span>-</span>
-                    </p>
-                </div>
+            <div class="stat-card">
+                <h3>Total BONK</h3>
+                <p id="totalBonk">Loading...</p>
             </div>
-
-            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-gray-500">Active Content</h3>
-                    <span class="p-2 bg-green-50 rounded-md">
-                        <i data-feather="activity" class="w-5 h-5 text-green-500"></i>
-                    </span>
-                </div>
-                <div class="flex items-baseline">
-                    <p class="text-2xl font-semibold text-gray-900" id="activeContent">-</p>
-                    <p class="ml-2 text-sm text-green-600 font-medium" id="contentGrowth">
-                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
-                        <span>-</span>
-                    </p>
-                </div>
+            <div class="stat-card">
+                <h3>Active Content</h3>
+                <p id="activeContent">Loading...</p>
             </div>
-
-            <div class="bg-white rounded-lg p-6 shadow-sm transition-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-medium text-gray-500">Completion Rate</h3>
-                    <span class="p-2 bg-purple-50 rounded-md">
-                        <i data-feather="percent" class="w-5 h-5 text-purple-500"></i>
-                    </span>
-                </div>
-                <div class="flex items-baseline">
-                    <p class="text-2xl font-semibold text-gray-900" id="completionRate">-</p>
-                    <p class="ml-2 text-sm text-green-600 font-medium" id="completionGrowth">
-                        <i data-feather="arrow-up" class="w-4 h-4 inline"></i>
-                        <span>-</span>
-                    </p>
-                </div>
+            <div class="stat-card">
+                <h3>Daily Earnings</h3>
+                <p id="dailyEarnings">Loading...</p>
             </div>
         </div>
 
         <!-- Content Management -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- PTC Ads Management -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-semibold text-gray-900">PTC Ads</h2>
-                    <button onclick="openModal('createPtcAdModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
-                        Add New
-                    </button>
+        <div class="content-grid">
+            <!-- PTC Ads -->
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>PTC Ads</h2>
+                    <button class="btn btn-primary" onclick="openModal('ptcAd')">Add New</button>
                 </div>
-                <div class="space-y-4" id="ptcAdsList"></div>
+                <div id="ptcAdsList" class="item-list"></div>
             </div>
 
-            <!-- Shortlinks Management -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Shortlinks</h2>
-                    <button onclick="openModal('createShortlinkModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
-                        Add New
-                    </button>
+            <!-- Shortlinks -->
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Shortlinks</h2>
+                    <button class="btn btn-primary" onclick="openModal('shortlink')">Add New</button>
                 </div>
-                <div class="space-y-4" id="shortlinksList"></div>
+                <div id="shortlinksList" class="item-list"></div>
             </div>
 
-            <!-- Tasks Management -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-semibold text-gray-900">Tasks</h2>
-                    <button onclick="openModal('createTaskModal')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <i data-feather="plus" class="w-4 h-4 mr-2"></i>
-                        Add New
-                    </button>
+            <!-- Tasks -->
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Tasks</h2>
+                    <button class="btn btn-primary" onclick="openModal('task')">Add New</button>
                 </div>
-                <div class="space-y-4" id="tasksList"></div>
+                <div id="tasksList" class="item-list"></div>
             </div>
         </div>
 
-        <!-- Analytics Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Activity</h2>
-                <canvas id="activityChart" height="300"></canvas>
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Activity Overview</h2>
+                <canvas id="activityChart"></canvas>
             </div>
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Earnings Distribution</h2>
-                <canvas id="earningsChart" height="300"></canvas>
+            <div class="chart-card">
+                <h2>Earnings Overview</h2>
+                <canvas id="earningsChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Create PTC Ad Modal -->
-    <div id="createPtcAdModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-md w-full p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Create PTC Ad</h3>
-                    <button onclick="closeModal('createPtcAdModal')" class="text-gray-400 hover:text-gray-500">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
+    <!-- Modals -->
+    <div id="ptcAdModal" class="modal">
+        <div class="modal-content">
+            <h2>Add PTC Ad</h2>
+            <form id="ptcAdForm" onsubmit="handlePtcAdSubmit(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
                 </div>
-                <form id="ptcAdForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Title</label>
-                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">URL</label>
-                        <input type="url" name="url" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">View Duration (10-180 seconds)</label>
-                        <input type="number" name="viewDuration" min="10" max="180" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
-                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div class="mt-4 flex justify-end space-x-3">
-                        <button type="button" onclick="closeModal('createPtcAdModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Create
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" name="url" required>
+                </div>
+                <div class="form-group">
+                    <label>View Duration (seconds)</label>
+                    <input type="number" name="viewDuration" min="10" max="180" required>
+                </div>
+                <div class="form-group">
+                    <label>BONK Reward</label>
+                    <input type="number" name="bonkReward" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn" onclick="closeModal('ptcAd')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Create Shortlink Modal -->
-    <div id="createShortlinkModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-md w-full p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Create Shortlink</h3>
-                    <button onclick="closeModal('createShortlinkModal')" class="text-gray-400 hover:text-gray-500">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
+    <div id="shortlinkModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Shortlink</h2>
+            <form id="shortlinkForm" onsubmit="handleShortlinkSubmit(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
                 </div>
-                <form id="shortlinkForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Title</label>
-                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">URL</label>
-                        <input type="url" name="url" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
-                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div class="mt-4 flex justify-end space-x-3">
-                        <button type="button" onclick="closeModal('createShortlinkModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Create
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" name="url" required>
+                </div>
+                <div class="form-group">
+                    <label>BONK Reward</label>
+                    <input type="number" name="bonkReward" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn" onclick="closeModal('shortlink')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Create Task Modal -->
-    <div id="createTaskModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" aria-hidden="true">
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-md w-full p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Create Task</h3>
-                    <button onclick="closeModal('createTaskModal')" class="text-gray-400 hover:text-gray-500">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Task</h2>
+            <form id="taskForm" onsubmit="handleTaskSubmit(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" required>
                 </div>
-                <form id="taskForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Title</label>
-                        <input type="text" name="title" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea name="description" required rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">BONK Reward</label>
-                        <input type="number" name="bonkReward" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Task Type</label>
-                        <select name="type" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="social">Social Media</option>
-                            <option value="website">Website</option>
-                            <option value="survey">Survey</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="mt-4 flex justify-end space-x-3">
-                        <button type="button" onclick="closeModal('createTaskModal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Create
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select name="type" required>
+                        <option value="social">Social Media</option>
+                        <option value="website">Website</option>
+                        <option value="survey">Survey</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>BONK Reward</label>
+                    <input type="number" name="bonkReward" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn" onclick="closeModal('task')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // Initialize Feather Icons
-        feather.replace();
-
-        // Global Variables
-        let lastUpdate = new Date();
+        // Global variables
+        let adminId = 'admin_' + Date.now(); // Simple admin ID generation
         let charts = {};
 
-        // Initialize Data and UI
-        async function initializeAdmin() {
-            await loadDashboardData();
-            initializeCharts();
-            setupEventListeners();
-            startAutoRefresh();
+        // Initialize the dashboard
+        async function initDashboard() {
+            await refreshData();
+            initCharts();
+            setInterval(refreshData, 30000); // Refresh every 30 seconds
         }
 
-        // Load Dashboard Data
-        async function loadDashboardData() {
+        // Refresh dashboard data
+        async function refreshData() {
             try {
                 const data = await DATABASE.api.getAllData();
-                updateStatistics(data);
+                updateStats(data);
                 updateContentLists(data);
-                updateLastSync();
+                updateCharts(data);
             } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                showNotification('Error loading data', 'error');
+                console.error('Error refreshing data:', error);
+                alert('Error refreshing data');
             }
         }
 
-        // Update Statistics
-        function updateStatistics(data) {
-            const stats = calculateStatistics(data);
-            
-            // Update counters with animation
-            animateCounter('totalUsers', stats.totalUsers);
-            animateCounter('totalBonk', stats.totalBonk);
-            animateCounter('activeContent', stats.activeContent);
-            animateCounter('completionRate', stats.completionRate, '%');
-
-            // Update growth indicators
-            updateGrowthIndicator('userGrowth', stats.userGrowth);
-            updateGrowthIndicator('bonkGrowth', stats.bonkGrowth);
-            updateGrowthIndicator('contentGrowth', stats.contentGrowth);
-            updateGrowthIndicator('completionGrowth', stats.completionGrowth);
-
-            // Update charts
-            updateChartData(charts.activityChart, stats.activityData);
-            updateChartData(charts.earningsChart, stats.earningsData);
-        }
-
-        // Calculate Statistics
-        function calculateStatistics(data) {
+        // Update statistics
+        function updateStats(data) {
             const users = Object.values(data.users || {});
-            const ptcAds = data.ptcAds || [];
-            const shortlinks = data.shortlinks || [];
-            const tasks = data.tasks || [];
+            const totalUsers = users.length;
+            const totalBonk = users.reduce((sum, user) => sum + (user.bonkBalance || 0), 0);
+            const activeContent = (data.ptcAds || []).filter(ad => ad.status === 'active').length +
+                                (data.shortlinks || []).filter(link => link.status === 'active').length +
+                                (data.tasks || []).filter(task => task.status === 'active').length;
 
-            return {
-                totalUsers: users.length,
-                totalBonk: users.reduce((sum, user) => sum + (user.bonkBalance || 0), 0),
-                activeContent: ptcAds.filter(ad => ad.status === 'active').length +
-                             shortlinks.filter(link => link.status === 'active').length +
-                             tasks.filter(task => task.status === 'active').length,
-                completionRate: calculateCompletionRate(data),
-                userGrowth: calculateGrowth('users', data),
-                bonkGrowth: calculateGrowth('bonk', data),
-                contentGrowth: calculateGrowth('content', data),
-                completionGrowth: calculateGrowth('completion', data),
-                activityData: generateActivityData(data),
-                earningsData: generateEarningsData(data)
-            };
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('totalBonk').textContent = totalBonk.toLocaleString() + ' BONK';
+            document.getElementById('activeContent').textContent = activeContent;
+            
+            // Calculate daily earnings
+            const today = new Date().toISOString().split('T')[0];
+            const dailyEarnings = users.reduce((sum, user) => sum + (user.earnings?.daily?.[today] || 0), 0);
+            document.getElementById('dailyEarnings').textContent = dailyEarnings.toLocaleString() + ' BONK';
         }
 
-        // Content Management Functions
-        async function createPtcAd(formData) {
+        // Update content lists
+        function updateContentLists(data) {
+            // Update PTC Ads list
+            const ptcAdsList = document.getElementById('ptcAdsList');
+            ptcAdsList.innerHTML = (data.ptcAds || []).map(ad => `
+                <div class="item">
+                    <div>
+                        <h4>${ad.title}</h4>
+                        <p>${ad.bonkReward} BONK - ${ad.status}</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" onclick="deleteContent('ptcAd', '${ad.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update Shortlinks list
+            const shortlinksList = document.getElementById('shortlinksList');
+            shortlinksList.innerHTML = (data.shortlinks || []).map(link => `
+                <div class="item">
+                    <div>
+                        <h4>${link.title}</h4>
+                        <p>${link.bonkReward} BONK - ${link.status}</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" onclick="deleteContent('shortlink', '${link.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update Tasks list
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = (data.tasks || []).map(task => `
+                <div class="item">
+                    <div>
+                        <h4>${task.title}</h4>
+                        <p>${task.bonkReward} BONK - ${task.status}</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger" onclick="deleteContent('task', '${task.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // Activity Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            charts.activity = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [],
+                        borderColor: '#4F46E5',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Earnings Chart
+            const earningsCtx = document.getElementById('earningsChart').getContext('2d');
+            charts.earnings = new Chart(earningsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Earnings (BONK)',
+                        data: [],
+                        backgroundColor: '#10B981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Update charts with new data
+        function updateCharts(data) {
+            // Get last 7 days
+            const dates = Array.from({length: 7}, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                return date.toISOString().split('T')[0];
+            }).reverse();
+
+            // Update Activity Chart
+            const activeUsers = dates.map(date => {
+                return Object.values(data.users || {}).filter(user => {
+                    const lastActivity = new Date(user.lastActivity);
+                    const checkDate = new Date(date);
+                    return lastActivity.toDateString() === checkDate.toDateString();
+                }).length;
+            });
+
+            charts.activity.data.labels = dates;
+            charts.activity.data.datasets[0].data = activeUsers;
+            charts.activity.update();
+
+            // Update Earnings Chart
+            const earnings = dates.map(date => {
+                return Object.values(data.users || {}).reduce((sum, user) => {
+                    return sum + (user.earnings?.daily?.[date] || 0);
+                }, 0);
+            });
+
+            charts.earnings.data.labels = dates;
+            charts.earnings.data.datasets[0].data = earnings;
+            charts.earnings.update();
+        }
+
+        // Modal functions
+        function openModal(type) {
+            document.getElementById(`${type}Modal`).style.display = 'block';
+        }
+
+        function closeModal(type) {
+            document.getElementById(`${type}Modal`).style.display = 'none';
+        }
+
+        // Handle form submissions
+        async function handlePtcAdSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
             try {
-                const adminId = localStorage.getItem('adminId');
                 const adData = {
                     title: formData.get('title'),
                     url: formData.get('url'),
@@ -387,108 +496,92 @@
                     bonkReward: parseInt(formData.get('bonkReward'))
                 };
 
-                const newAd = await DATABASE.contentManagement.createPtcAd(adminId, adData);
-                if (newAd) {
-                    showNotification('PTC Ad created successfully', 'success');
-                    closeModal('createPtcAdModal');
-                    await loadDashboardData();
-                }
+                await DATABASE.contentManagement.createPtcAd(adminId, adData);
+                closeModal('ptcAd');
+                form.reset();
+                await refreshData();
             } catch (error) {
                 console.error('Error creating PTC ad:', error);
-                showNotification(error.message, 'error');
+                alert('Error creating PTC ad');
             }
         }
 
-        async function createShortlink(formData) {
+        async function handleShortlinkSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
             try {
-                const adminId = localStorage.getItem('adminId');
-                const shortlinkData = {
+                const linkData = {
                     title: formData.get('title'),
                     url: formData.get('url'),
                     bonkReward: parseInt(formData.get('bonkReward'))
                 };
 
-                const newShortlink = await DATABASE.contentManagement.createShortlink(adminId, shortlinkData);
-                if (newShortlink) {
-                    showNotification('Shortlink created successfully', 'success');
-                    closeModal('createShortlinkModal');
-                    await loadDashboardData();
-                }
+                await DATABASE.contentManagement.createShortlink(adminId, linkData);
+                closeModal('shortlink');
+                form.reset();
+                await refreshData();
             } catch (error) {
                 console.error('Error creating shortlink:', error);
-                showNotification(error.message, 'error');
+                alert('Error creating shortlink');
             }
         }
 
-        async function createTask(formData) {
+        async function handleTaskSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
             try {
-                const adminId = localStorage.getItem('adminId');
                 const taskData = {
                     title: formData.get('title'),
                     description: formData.get('description'),
-                    bonkReward: parseInt(formData.get('bonkReward')),
-                    type: formData.get('type')
+                    type: formData.get('type'),
+                    bonkReward: parseInt(formData.get('bonkReward'))
                 };
 
-                const newTask = await DATABASE.contentManagement.createTask(adminId, taskData);
-                if (newTask) {
-                    showNotification('Task created successfully', 'success');
-                    closeModal('createTaskModal');
-                    await loadDashboardData();
-                }
+                await DATABASE.contentManagement.createTask(adminId, taskData);
+                closeModal('task');
+                form.reset();
+                await refreshData();
             } catch (error) {
                 console.error('Error creating task:', error);
-                showNotification(error.message, 'error');
+                alert('Error creating task');
             }
         }
 
-        // UI Helper Functions
-        function showNotification(message, type = 'success') {
-            // Implementation of notification system
+        // Delete content
+        async function deleteContent(type, id) {
+            if (!confirm('Are you sure you want to delete this item?')) {
+                return;
+            }
+
+            try {
+                const data = await DATABASE.api.getAllData();
+                
+                switch(type) {
+                    case 'ptcAd':
+                        data.ptcAds = data.ptcAds.filter(ad => ad.id !== id);
+                        break;
+                    case 'shortlink':
+                        data.shortlinks = data.shortlinks.filter(link => link.id !== id);
+                        break;
+                    case 'task':
+                        data.tasks = data.tasks.filter(task => task.id !== id);
+                        break;
+                }
+
+                await DATABASE.api.updateData(data);
+                await refreshData();
+            } catch (error) {
+                console.error('Error deleting content:', error);
+                alert('Error deleting content');
+            }
         }
 
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        function updateLastSync() {
-            lastUpdate = new Date();
-            document.getElementById('lastSync').textContent = 
-                `Last updated: ${lastUpdate.toLocaleTimeString()}`;
-        }
-
-        // Event Listeners Setup
-        function setupEventListeners() {
-            // Form submissions
-            document.getElementById('ptcAdForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await createPtcAd(new FormData(e.target));
-            });
-
-            document.getElementById('shortlinkForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await createShortlink(new FormData(e.target));
-            });
-
-            document.getElementById('taskForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await createTask(new FormData(e.target));
-            });
-        }
-
-        // Auto Refresh
-        function startAutoRefresh() {
-            setInterval(async () => {
-                await loadDashboardData();
-            }, 30000); // Refresh every 30 seconds
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initializeAdmin);
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body>
 </html>
